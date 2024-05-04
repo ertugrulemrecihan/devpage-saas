@@ -68,3 +68,14 @@ export const SettingsSchema = z
       path: ['password'],
     }
   );
+
+export const UsernameSchema = z.object({
+  username: z
+    .string()
+    .min(1, {
+      message: 'Username is required',
+    })
+    .regex(/^[a-z0-9_-]{3,15}$/, {
+      message: 'Invalid username',
+    }),
+});
