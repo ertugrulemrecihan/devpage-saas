@@ -1,0 +1,115 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                    String                 @id @default(cuid())
+  displayName           String?
+  email                 String?                @unique
+  emailVerified         DateTime?
+  image                 String?
+  password              String?
+  accounts              Account[]
+  isTwoFactorEnabled    Boolean                @default(false)
+  twoFactorConfirmation TwoFactorConfirmation?
+  plan                  Plan?                  @relation(fields: [planId], references: [id], onDelete: Cascade)
+  planId                Int?                   @unique
+  currentPlanExpiresAt  DateTime?
+  payments              Payment[]
+  paymentConfirmation   PaymentConfirmation?
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model VerificationToken {
+  id        String   @id @default(cuid())
+  email     String
+  token     String   @unique
+  expiresAt DateTime
+
+  @@unique([email, token])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  email     String
+  token     String   @unique
+  expiresAt DateTime
+
+  @@unique([email, token])
+}
+
+model TwoFactorToken {
+  id        String   @id @default(cuid())
+  email     String
+  token     String   @unique
+  expiresAt DateTime
+
+  @@unique([email, token])
+}
+
+model TwoFactorConfirmation {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId])
+}
+
+model Plan {
+  id                   Int                   @id @default(autoincrement())
+  user                 User[]
+  name                 String
+  description          String
+  price                Decimal
+  discountuntedPrice   Decimal
+  payments             Payment[]
+  paymentConfirmations PaymentConfirmation[]
+}
+
+model Payment {
+  id        String @id @default(cuid())
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  plan      Plan   @relation(fields: [planId], references: [id], onDelete: Cascade)
+  planId    Int
+  paymentId String @unique
+  mdStatus  String
+}
+
+model PaymentConfirmation {
+  id     String @id @default(cuid())
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @unique
+
+  plan   Plan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  planId Int
+
+  paymentId        String @unique
+  conversationData String
+  conversationId   String
+  mdStatus         String
+}
