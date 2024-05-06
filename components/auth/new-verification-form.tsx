@@ -15,6 +15,7 @@ export const NewVerificationForm = () => {
   const searchParams = useSearchParams();
 
   const token = searchParams.get('token');
+  const callbackUrl = searchParams.get('callbackUrl');
 
   const onSubmit = useCallback(() => {
     if (success || error) return;
@@ -42,7 +43,9 @@ export const NewVerificationForm = () => {
     <CardWrapper
       headerLabel="Confirming your verification"
       backButtonLabel="Back to login"
-      backButtonHref="/auth/login"
+      backButtonHref={
+        callbackUrl ? `/auth/login?callbackUrl=${callbackUrl}` : '/auth/login'
+      }
     >
       <div className="flex flex-col space-y-6 items-center w-full justify-center">
         {!success && !error && <BeatLoader />}

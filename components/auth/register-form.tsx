@@ -21,8 +21,12 @@ import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/form-error';
 import { FormSuccess } from '@/components/form-success';
 import { register } from '@/actions/register';
+import { useSearchParams } from 'next/navigation';
 
 const RegisterForm = () => {
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get('callbackUrl');
+
   const [error, setError] = useState<string | undefined>('');
   const [success, setSuccess] = useState<string | undefined>('');
   const [isPending, startTransition] = useTransition();
@@ -41,7 +45,7 @@ const RegisterForm = () => {
     setSuccess('');
 
     startTransition(() => {
-      register(values).then((data) => {
+      register(values, callbackUrl as string).then((data) => {
         if (!data) return;
         setError(data.error);
         setSuccess(data.success);

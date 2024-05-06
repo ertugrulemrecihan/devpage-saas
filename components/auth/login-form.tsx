@@ -76,7 +76,11 @@ const LoginForm = () => {
     <CardWrapper
       headerLabel="Welcome Back!"
       backButtonLabel="Don't have an account?"
-      backButtonHref="/auth/register"
+      backButtonHref={
+        callbackUrl
+          ? `/auth/register?callbackUrl=${callbackUrl}`
+          : '/auth/register'
+      }
       showSocial
       callbackUrl={callbackUrl as string}
     >

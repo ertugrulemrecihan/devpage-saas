@@ -7,6 +7,7 @@ import {
   apiAuthPrefix,
   authRoutes,
   publicRoutes,
+  errorRoutes,
 } from '@/routes';
 
 const { auth } = NextAuth(authConfig);
@@ -17,7 +18,9 @@ export default auth((req): any => {
 
   const isApiAuthRoute = nextUrl.pathname.startsWith(apiAuthPrefix);
   const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
+  const isErrorRoute = errorRoutes.includes(nextUrl.pathname);
   const isAuthRoute = authRoutes.includes(nextUrl.pathname);
+  const isUserDetailPage = nextUrl.pathname.match('/u/(.*)');
 
   if (isApiAuthRoute) {
     return null;
@@ -31,7 +34,15 @@ export default auth((req): any => {
     return null;
   }
 
+  if (isErrorRoute) {
+    return null;
+  }
+
   if (!isLoggedIn && !isPublicRoute) {
+    if (isUserDetailPage) {
+      return null;
+    }
+
     let callbackUrl = nextUrl.pathname;
     if (nextUrl.search) {
       callbackUrl += nextUrl.search;

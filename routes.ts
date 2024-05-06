@@ -6,6 +6,13 @@
 export const publicRoutes = ['/', '/auth/new-verification'];
 
 /**
+ * An array of routes that are used for error handling.
+ * These routes are used to display error pages.
+ * @type {string[]}
+ */
+export const errorRoutes = ['/404'];
+
+/**
  * An array of routes that are used for authentication.
  * These routes will redirect logged in users to the settings.
  * @type {string[]}
@@ -29,4 +36,4 @@ export const apiAuthPrefix = '/api/auth';
  * The default redirect path after logged in.
  * @type {string}
  */
-export const DEFAULT_LOGIN_REDIRECT = '/settings';
+export const DEFAULT_LOGIN_REDIRECT = '/panel';

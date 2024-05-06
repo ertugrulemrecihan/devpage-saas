@@ -2,7 +2,7 @@ import * as z from 'zod';
 import { useForm } from 'react-hook-form';
 import { UsernameSchema } from '@/schemas';
 import { useSession } from 'next-auth/react';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { setUsername } from '@/actions/set-username';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useCurrentUser } from '@/hooks/use-current-user';
@@ -18,12 +18,12 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { FormSuccess } from '@/components/form-success';
 import { FormError } from '@/components/form-error';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 
 export const UsernameForm = () => {
+  const router = useRouter();
   const { toast } = useToast();
 
   const searchParams = useSearchParams();
@@ -76,28 +76,20 @@ export const UsernameForm = () => {
       setUsername({ username })
         .then((data) => {
           if (data?.error) {
-            toast({
-              title: 'An error occurred.',
-              description: data.error,
-            });
+            return;
           }
 
           if (data?.success) {
             update();
-            toast({
-              title: 'Success!',
-              description: data.success,
-            });
+            router.replace('/panel');
           }
         })
         .catch(() => {
-          toast({
-            title: 'An error occurred.',
-            description: 'There was a problem adding the username.',
-          });
+          return;
         });
     });
-  }, [hasUsername, username, toast, update]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     addUsernameFromUrl();

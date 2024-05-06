@@ -79,3 +79,14 @@ export const UsernameSchema = z.object({
       message: 'Invalid username',
     }),
 });
+
+export const FastRegisterSchema = z.object({
+  username: z
+    .string()
+    .min(1, {
+      message: 'Username is required',
+    })
+    .regex(/^[a-z0-9_-]{3,15}$/, {
+      message: 'Invalid username',
+    }),
+});

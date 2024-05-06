@@ -3,6 +3,7 @@ import { Poppins } from 'next/font/google';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { LoginButton } from '@/components/auth/login-button';
+import { FastRegister } from '@/components/auth/fast-register';
 
 const font = Poppins({
   subsets: ['latin'],
@@ -29,6 +30,7 @@ export default function Home() {
             </Button>
           </LoginButton>
         </div>
+        <FastRegister />
       </div>
     </main>
   );
