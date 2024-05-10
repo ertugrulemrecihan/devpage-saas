@@ -35,3 +35,18 @@ export const getUserByUsername = async (username: string) => {
     return null;
   }
 };
+
+export const getUserByIdWithUserPage = async (id: string) => {
+  try {
+    const user = await db.user.findUnique({
+      where: { id },
+      include: {
+        userPage: true,
+      },
+    });
+
+    return user;
+  } catch {
+    return null;
+  }
+};

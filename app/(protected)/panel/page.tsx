@@ -2,6 +2,7 @@
 
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { UsernameForm } from '@/app/(protected)/_components/panel/username-form';
+import { UserPageDetails } from '@/app/(protected)/_components/panel/user-page-details';
 
 const PanelPage = () => {
   return (
@@ -10,10 +11,8 @@ const PanelPage = () => {
         <p className="text-2xl font-semibold text-center">📊 Panel</p>
       </CardHeader>
       <CardContent>
-        <p className="text-center text-lg text-muted-foreground">
-          Welcome to the panel! 🎉
-        </p>
         <UsernameForm />
+        <UserPageDetails />
       </CardContent>
     </Card>
   );

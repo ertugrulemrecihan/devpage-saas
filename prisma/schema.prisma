@@ -24,6 +24,61 @@ model User {
   currentPlanExpiresAt  DateTime?
   payments              Payment[]
   paymentConfirmation   PaymentConfirmation?
+  userPage              UserPage?
+}
+
+model UserPage {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  biography        String?           @db.Text
+  location         String?
+  projects         Project[]
+  socialMediaLinks SocialMediaLink[]
+}
+
+model Project {
+  id              String          @id @default(cuid())
+  userPage        UserPage        @relation(fields: [userPageId], references: [id], onDelete: Cascade)
+  userPageId      String          @unique
+  image           String?
+  name            String
+  description     String?         @db.Text
+  url             String?
+  statusIsVisible Boolean         @default(false)
+  size            ProjectCardSize @default(SMALL)
+
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  categoryId String   @unique
+
+  status   ProjectStatus @relation(fields: [statusId], references: [id], onDelete: Cascade)
+  statusId String        @unique
+}
+
+model Category {
+  id          String  @id @default(cuid())
+  name        String
+  description String? @db.Text
+
+  projects Project[]
+}
+
+model ProjectStatus {
+  id          String  @id @default(cuid())
+  name        String
+  description String? @db.Text
+
+  projects Project[]
+}
+
+model SocialMediaLink {
+  id         String   @id @default(cuid())
+  userPage   UserPage @relation(fields: [userPageId], references: [id], onDelete: Cascade)
+  userPageId String   @unique
+  name       String
+  iconName   String
+  url        String
 }
 
 model Account {
@@ -113,4 +168,9 @@ model PaymentConfirmation {
   conversationData String
   conversationId   String
   mdStatus         String
+}
+
+enum ProjectCardSize {
+  SMALL
+  MEDIUM
 }

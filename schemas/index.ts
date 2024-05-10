@@ -90,3 +90,34 @@ export const FastRegisterSchema = z.object({
       message: 'Invalid username',
     }),
 });
+
+export const UserPageDetailsSchema = z.object({
+  name: z
+    .string({
+      message: 'Invalid name',
+    })
+    .min(1, {
+      message: 'Name is required',
+    })
+    .max(50, {
+      message: 'Maximum 50 characters allowed',
+    }),
+  biography: z.optional(
+    z
+      .string({
+        message: 'Invalid biography',
+      })
+      .max(200, {
+        message: 'Maximum 200 characters allowed',
+      })
+  ),
+  location: z.optional(
+    z
+      .string({
+        message: 'Invalid location',
+      })
+      .max(50, {
+        message: 'Maximum 50 characters allowed',
+      })
+  ),
+});
