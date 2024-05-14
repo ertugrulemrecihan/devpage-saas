@@ -1,11 +1,15 @@
 'use client';
 
 import * as z from 'zod';
-import { useState, useTransition } from 'react';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
+import { UserWithUserPage } from '@/types';
 import { UserPageDetailsSchema } from '@/schemas';
-import { useCurrentUser } from '@/hooks/use-current-user';
+import { useAutoSave } from '@/hooks/use-auto-save';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect, useState, useTransition } from 'react';
+import { updateUserPageDetails } from '@/actions/user-page';
+import { useAppDispatch, useAppSelector } from '@/lib/rtk-hooks';
+import { setUser as rtkSetUser } from '@/lib/features/user/userSlice';
 
 import {
   Form,
@@ -16,44 +20,29 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { useEffect } from 'react';
-import {
-  getUserAllPageDetail,
-  updateUserPageDetails,
-} from '@/actions/user-page';
-import { BeatLoader } from 'react-spinners';
-import { UserWithUserPage } from '@/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
 } from '@/components/ui/hover-card';
-import { FcRight } from 'react-icons/fc';
-import { IoLocationSharp } from 'react-icons/io5';
-import { useAutoSave } from '@/hooks/use-auto-save';
 import { toast } from '@/components/ui/use-toast';
 
-export const UserPageDetails = () => {
-  const [isPending, startTransition] = useTransition();
-  const [isFormPending, setFormTransition] = useTransition();
-  const [user, setUser] = useState<UserWithUserPage>();
+import { FcRight } from 'react-icons/fc';
+import { IoLocationSharp } from 'react-icons/io5';
 
-  const sessionUser = useCurrentUser();
+export const UserPageDetails = () => {
+  const rtkUser = useAppSelector((state) => state.user);
+
+  const dispatch = useAppDispatch();
+
+  const [user, setUser] = useState<UserWithUserPage | undefined>(rtkUser);
 
   useEffect(() => {
-    if (sessionUser) {
-      startTransition(() => {
-        getUserAllPageDetail(sessionUser.id as string)
-          .then((data) => {
-            setUser(data.user);
-          })
-          .catch((error) => {
-            console.error(error);
-          });
-      });
-    }
-  }, [sessionUser]);
+    setUser(rtkUser);
+  }, [rtkUser]);
+
+  const [isFormPending, setFormTransition] = useTransition();
 
   const form = useForm<z.infer<typeof UserPageDetailsSchema>>({
     resolver: zodResolver(UserPageDetailsSchema),
@@ -67,10 +56,11 @@ export const UserPageDetails = () => {
   const updateUserDetails = async (
     data: z.infer<typeof UserPageDetailsSchema>
   ) => {
-    if (sessionUser) {
+    if (user) {
       setFormTransition(() => {
-        updateUserPageDetails(sessionUser?.id as string, data).then((data) => {
-          setUser(data?.user);
+        updateUserPageDetails(user?.id, data).then((data) => {
+          dispatch(rtkSetUser(data?.user));
+
           toast({
             title: 'Success!',
             description: data?.success,
@@ -118,14 +108,6 @@ export const UserPageDetails = () => {
 
     dispatchAutoSave(updatesObject);
   };
-
-  if (isPending) {
-    return (
-      <div className="w-full flex justify-center">
-        <BeatLoader />
-      </div>
-    );
-  }
 
   return (
     <div className="w-full p-4 bg-secondary rounded-md">

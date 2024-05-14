@@ -5,6 +5,7 @@ import { auth } from '@/auth';
 import './globals.css';
 
 import { Toaster } from '@/components/ui/toaster';
+import StoreProvider from './StoreProvider';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -22,12 +23,14 @@ export default async function RootLayout({
 
   return (
     <SessionProvider session={session}>
-      <html lang="tr">
-        <body className={inter.className}>
-          {children}
-          <Toaster />
-        </body>
-      </html>
+      <StoreProvider>
+        <html lang="tr">
+          <body className={inter.className}>
+            {children}
+            <Toaster />
+          </body>
+        </html>
+      </StoreProvider>
     </SessionProvider>
   );
 }

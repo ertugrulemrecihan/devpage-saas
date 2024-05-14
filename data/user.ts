@@ -40,8 +40,34 @@ export const getUserByIdWithUserPage = async (id: string) => {
   try {
     const user = await db.user.findUnique({
       where: { id },
-      include: {
-        userPage: true,
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        name: true,
+        image: true,
+        userPage: {
+          select: {
+            id: true,
+            biography: true,
+            location: true,
+            projects: {
+              select: {
+                id: true,
+                name: true,
+                category: true,
+                description: true,
+                url: true,
+                image: true,
+                categoryId: true,
+                size: true,
+                statusIsVisible: true,
+                status: true,
+                statusId: true,
+              },
+            },
+          },
+        },
       },
     });
 

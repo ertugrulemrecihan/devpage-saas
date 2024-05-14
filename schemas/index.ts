@@ -121,3 +121,39 @@ export const UserPageDetailsSchema = z.object({
       })
   ),
 });
+
+export const ProjectSchema = z.object({
+  name: z
+    .string({
+      message: 'Invalid name',
+    })
+    .min(1, {
+      message: 'Name is required',
+    })
+    .max(75, {
+      message: 'Maximum 75 characters allowed',
+    }),
+  description: z.optional(
+    z
+      .string({
+        message: 'Invalid description',
+      })
+      .max(200, {
+        message: 'Maximum 200 characters allowed',
+      })
+  ),
+  url: z.optional(
+    z
+      .string({
+        message: 'Invalid URL',
+      })
+      .url({
+        message: 'Invalid URL',
+      })
+  ),
+  image: z.optional(z.string().url({ message: 'Invalid image URL' })),
+  statusIsVisible: z.boolean().default(false),
+  size: z.enum(['small', 'medium']).default('small'),
+  category: z.optional(z.string()),
+  status: z.optional(z.string()),
+});

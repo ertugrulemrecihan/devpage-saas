@@ -19,6 +19,26 @@ export const getUserAllPageDetail = async (id: string) => {
       data: {
         userId: user.id,
       },
+      select: {
+        id: true,
+        biography: true,
+        location: true,
+        projects: {
+          select: {
+            id: true,
+            name: true,
+            category: true,
+            description: true,
+            url: true,
+            image: true,
+            categoryId: true,
+            size: true,
+            statusIsVisible: true,
+            status: true,
+            statusId: true,
+          },
+        },
+      },
     });
 
     user.userPage = userPage;
@@ -69,11 +89,32 @@ export const updateUserPageDetails = async (
           },
         },
       },
-      include: {
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        name: true,
+        image: true,
         userPage: {
           select: {
+            id: true,
             biography: true,
             location: true,
+            projects: {
+              select: {
+                id: true,
+                name: true,
+                category: true,
+                description: true,
+                url: true,
+                image: true,
+                categoryId: true,
+                size: true,
+                statusIsVisible: true,
+                status: true,
+                statusId: true,
+              },
+            },
           },
         },
       },
