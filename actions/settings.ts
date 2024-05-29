@@ -185,6 +185,7 @@ export const deleteProfilePhoto = async () => {
           id: true,
           biography: true,
           location: true,
+          contactEmail: true,
           projects: {
             select: {
               id: true,
