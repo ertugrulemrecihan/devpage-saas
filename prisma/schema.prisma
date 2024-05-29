@@ -19,12 +19,8 @@ model User {
   accounts              Account[]
   isTwoFactorEnabled    Boolean                @default(false)
   twoFactorConfirmation TwoFactorConfirmation?
-  plan                  Plan?                  @relation(fields: [planId], references: [id], onDelete: Cascade)
-  planId                Int?                   @unique
-  currentPlanExpiresAt  DateTime?
-  payments              Payment[]
-  paymentConfirmation   PaymentConfirmation?
-  userPage              UserPage?
+
+  userPage UserPage?
 }
 
 model UserPage {
@@ -32,22 +28,26 @@ model UserPage {
   userId String @unique
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  projectCardsStyle     PROJECT_CARD_STYLE      @default(HORIZONTAL)
+  socialMediaLinksStyle SOCIAL_MEDIA_LINK_STYLE @default(FILL)
+  backgroundStyle       BACKGROUND_STYLE        @default(RUBY)
+
   biography        String?           @db.Text
   location         String?
+  contactEmail     String?
   projects         Project[]
   socialMediaLinks SocialMediaLink[]
 }
 
 model Project {
-  id              String          @id @default(cuid())
-  userPage        UserPage        @relation(fields: [userPageId], references: [id], onDelete: Cascade)
+  id              String   @id @default(cuid())
+  userPage        UserPage @relation(fields: [userPageId], references: [id], onDelete: Cascade)
   userPageId      String
   image           String?
   name            String
-  description     String?         @db.Text
+  description     String?  @db.Text
   url             String?
-  statusIsVisible Boolean         @default(false)
-  size            ProjectCardSize @default(SMALL)
+  statusIsVisible Boolean  @default(false)
 
   category   Category? @relation(fields: [categoryId], references: [id])
   categoryId String?
@@ -135,42 +135,23 @@ model TwoFactorConfirmation {
   @@unique([userId])
 }
 
-model Plan {
-  id                   Int                   @id @default(autoincrement())
-  user                 User[]
-  name                 String
-  description          String
-  price                Decimal
-  discountuntedPrice   Decimal
-  payments             Payment[]
-  paymentConfirmations PaymentConfirmation[]
+enum PROJECT_CARD_STYLE {
+  HORIZONTAL
+  BIG_IMAGE
+  VERTICAL
 }
 
-model Payment {
-  id        String @id @default(cuid())
-  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    String
-  plan      Plan   @relation(fields: [planId], references: [id], onDelete: Cascade)
-  planId    Int
-  paymentId String @unique
-  mdStatus  String
+enum SOCIAL_MEDIA_LINK_STYLE {
+  FILL
+  LINE
+  GHOST
 }
 
-model PaymentConfirmation {
-  id     String @id @default(cuid())
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId String @unique
-
-  plan   Plan @relation(fields: [planId], references: [id], onDelete: Cascade)
-  planId Int
-
-  paymentId        String @unique
-  conversationData String
-  conversationId   String
-  mdStatus         String
-}
-
-enum ProjectCardSize {
-  SMALL
-  MEDIUM
+enum BACKGROUND_STYLE {
+  RUBY
+  HONEY
+  SKY
+  MINT
+  PANSY
+  PLUM
 }

@@ -92,16 +92,18 @@ export const FastRegisterSchema = z.object({
 });
 
 export const UserPageDetailsSchema = z.object({
-  name: z
-    .string({
-      message: 'Invalid name',
-    })
-    .min(1, {
-      message: 'Name is required',
-    })
-    .max(50, {
-      message: 'Maximum 50 characters allowed',
-    }),
+  name: z.optional(
+    z
+      .string({
+        message: 'Invalid name',
+      })
+      .min(1, {
+        message: 'Name is required',
+      })
+      .max(50, {
+        message: 'Maximum 50 characters allowed',
+      })
+  ),
   biography: z.optional(
     z
       .string({
@@ -118,6 +120,15 @@ export const UserPageDetailsSchema = z.object({
       })
       .max(50, {
         message: 'Maximum 50 characters allowed',
+      })
+  ),
+  contactEmail: z.optional(
+    z
+      .string({
+        message: 'Invalid email',
+      })
+      .email({
+        message: 'Invalid email',
       })
   ),
 });

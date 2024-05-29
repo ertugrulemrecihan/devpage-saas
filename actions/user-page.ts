@@ -23,6 +23,7 @@ export const getUserAllPageDetail = async (id: string) => {
         id: true,
         biography: true,
         location: true,
+        contactEmail: true,
         projects: {
           select: {
             id: true,
@@ -32,7 +33,6 @@ export const getUserAllPageDetail = async (id: string) => {
             url: true,
             image: true,
             categoryId: true,
-            size: true,
             statusIsVisible: true,
             status: true,
             statusId: true,
@@ -100,6 +100,7 @@ export const updateUserPageDetails = async (
             id: true,
             biography: true,
             location: true,
+            contactEmail: true,
             projects: {
               select: {
                 id: true,
@@ -109,7 +110,6 @@ export const updateUserPageDetails = async (
                 url: true,
                 image: true,
                 categoryId: true,
-                size: true,
                 statusIsVisible: true,
                 status: true,
                 statusId: true,
@@ -121,7 +121,5 @@ export const updateUserPageDetails = async (
     });
 
     return { user: updatedUser, success: 'Saved! ✅' };
-  } catch {
-    return null;
-  }
+  } catch {}
 };

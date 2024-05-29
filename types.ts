@@ -12,6 +12,7 @@ const userWithUserPage = Prisma.validator<Prisma.UserArgs>()({
         id: true,
         biography: true,
         location: true,
+        contactEmail: true,
         projects: {
           select: {
             id: true,
@@ -21,7 +22,6 @@ const userWithUserPage = Prisma.validator<Prisma.UserArgs>()({
             url: true,
             image: true,
             categoryId: true,
-            size: true,
             statusIsVisible: true,
             status: true,
             statusId: true,
@@ -46,3 +46,51 @@ const ProjectWithOthers = Prisma.validator<Prisma.ProjectArgs>()({
 export type ProjectWithOthers = Prisma.ProjectGetPayload<
   typeof ProjectWithOthers
 >;
+
+const UserForProfile = Prisma.validator<Prisma.UserArgs>()({
+  select: {
+    id: true,
+    username: true,
+    image: true,
+    name: true,
+    email: true,
+    userPage: {
+      select: {
+        biography: true,
+        location: true,
+        backgroundStyle: true,
+        projectCardsStyle: true,
+        socialMediaLinksStyle: true,
+        socialMediaLinks: true,
+        contactEmail: true,
+        projects: {
+          select: {
+            image: true,
+            name: true,
+            description: true,
+            category: {
+              select: {
+                name: true,
+              },
+            },
+            status: {
+              select: {
+                name: true,
+              },
+            },
+            url: true,
+          },
+        },
+      },
+    },
+  },
+});
+
+export type UserForProfile = Prisma.UserGetPayload<typeof UserForProfile>;
+
+export type ProfileBackgroundColorsType = {
+  [key: string]: {
+    backgroundColor: string;
+    borderColors: { from: string; to: string };
+  };
+};

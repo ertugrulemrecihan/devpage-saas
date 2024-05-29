@@ -3,7 +3,14 @@
  * These routes do not require authentication.
  * @type {string[]}
  */
-export const publicRoutes = ['/', '/auth/new-verification'];
+export const publicRoutes = ['/', '/auth/new-verification', '/api/uploadthing'];
+
+/**
+ * An array of routes that are private.
+ * These routes do require authentication.
+ * @type {string[]}
+ */
+export const privateRoutes = ['/panel', '/settings'];
 
 /**
  * An array of routes that are used for error handling.

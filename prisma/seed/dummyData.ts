@@ -1,5 +1,4 @@
 import { Category, Prisma, ProjectStatus } from '@prisma/client';
-import { createId } from '@paralleldrive/cuid2';
 
 export const categories: Category[] = [
   {

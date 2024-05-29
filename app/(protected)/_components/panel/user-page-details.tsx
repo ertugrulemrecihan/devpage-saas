@@ -6,6 +6,7 @@ import { UserWithUserPage } from '@/types';
 import { UserPageDetailsSchema } from '@/schemas';
 import { useAutoSave } from '@/hooks/use-auto-save';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { changeProfilePhoto } from '@/actions/settings';
 import { useEffect, useState, useTransition } from 'react';
 import { updateUserPageDetails } from '@/actions/user-page';
 import { useAppDispatch, useAppSelector } from '@/lib/rtk-hooks';
@@ -22,6 +23,14 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import {
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
@@ -30,6 +39,10 @@ import { toast } from '@/components/ui/use-toast';
 
 import { FcRight } from 'react-icons/fc';
 import { IoLocationSharp } from 'react-icons/io5';
+import { FaCamera } from 'react-icons/fa';
+import { UploadDropzone } from '@/components/uploadthing-button';
+
+import '@uploadthing/react/styles.css';
 
 export const UserPageDetails = () => {
   const rtkUser = useAppSelector((state) => state.user);
@@ -43,6 +56,8 @@ export const UserPageDetails = () => {
   }, [rtkUser]);
 
   const [isFormPending, setFormTransition] = useTransition();
+  const [isProfilePhotoUploading, startProfilePhotoTransition] =
+    useTransition();
 
   const form = useForm<z.infer<typeof UserPageDetailsSchema>>({
     resolver: zodResolver(UserPageDetailsSchema),
@@ -79,6 +94,7 @@ export const UserPageDetails = () => {
       name: user?.name,
       biography: user?.userPage?.biography,
       location: user?.userPage?.location,
+      contactEmail: user?.userPage?.contactEmail,
     };
 
     if (JSON.stringify(values) === JSON.stringify(formLastData)) {
@@ -115,13 +131,74 @@ export const UserPageDetails = () => {
         <form onChange={form.handleSubmit(onSubmit)} className="space-y-4">
           <div className="w-full flex items-center justify-between gap-3">
             <div>
-              <Avatar>
+              <Avatar className="group relative">
                 {user?.image && (
                   <AvatarImage src={user?.image} alt={user?.name as string} />
                 )}
                 <AvatarFallback className="uppercase bg-sky-300 text-white font-bold">
                   {user?.name?.slice(0, 2).toString()}
                 </AvatarFallback>
+                <Dialog>
+                  <DialogTrigger>
+                    <div className="hidden absolute bg-black bg-opacity-40 group-hover:flex items-center justify-center w-full h-full top-0 left-0 z-10 cursor-pointer">
+                      <FaCamera className="text-white" />
+                    </div>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Change Profile Photo</DialogTitle>
+                      <DialogDescription>
+                        Upload a new photo for your profile
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="flex justify-center">
+                      <Avatar className="w-40 h-40 border shadow-sm">
+                        {user?.image && (
+                          <AvatarImage
+                            src={user?.image}
+                            alt={user?.name as string}
+                          />
+                        )}
+                        <AvatarFallback className="uppercase bg-sky-300 text-white font-bold">
+                          {user?.name?.slice(0, 2).toString()}
+                        </AvatarFallback>
+                      </Avatar>
+                    </div>
+                    <UploadDropzone
+                      config={{
+                        mode: 'auto',
+                      }}
+                      endpoint="imageUploader"
+                      onClientUploadComplete={(res) => {
+                        startProfilePhotoTransition(() => {
+                          changeProfilePhoto(res).then((data) => {
+                            if (data.success) {
+                              dispatch(rtkSetUser(data?.user));
+                              toast({
+                                title: 'Success!',
+                                description: data?.success,
+                              });
+                            }
+
+                            if (data.error) {
+                              toast({
+                                title: 'Error',
+                                description: data.error,
+                              });
+                            }
+                          });
+                        });
+                      }}
+                      onUploadError={(error: Error) => {
+                        toast({
+                          title: 'Error',
+                          content: "Couldn't upload the image.",
+                        });
+                      }}
+                      className="bg-slate-100 ut-label:text-lg ut-allowed-content:ut-uploading:text-red-300"
+                    />
+                  </DialogContent>
+                </Dialog>
               </Avatar>
             </div>
             <FormField

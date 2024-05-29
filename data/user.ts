@@ -51,6 +51,7 @@ export const getUserByIdWithUserPage = async (id: string) => {
             id: true,
             biography: true,
             location: true,
+            contactEmail: true,
             projects: {
               select: {
                 id: true,
@@ -60,7 +61,6 @@ export const getUserByIdWithUserPage = async (id: string) => {
                 url: true,
                 image: true,
                 categoryId: true,
-                size: true,
                 statusIsVisible: true,
                 status: true,
                 statusId: true,

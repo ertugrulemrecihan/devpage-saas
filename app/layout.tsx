@@ -1,13 +1,14 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Inter_Tight } from 'next/font/google';
 import { SessionProvider } from 'next-auth/react';
 import { auth } from '@/auth';
-import './globals.css';
 
 import { Toaster } from '@/components/ui/toaster';
 import StoreProvider from './StoreProvider';
 
-const inter = Inter({ subsets: ['latin'] });
+import './globals.css';
+
+const interTight = Inter_Tight({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'Create Next App',
@@ -25,7 +26,7 @@ export default async function RootLayout({
     <SessionProvider session={session}>
       <StoreProvider>
         <html lang="tr">
-          <body className={inter.className}>
+          <body className={interTight.className}>
             {children}
             <Toaster />
           </body>

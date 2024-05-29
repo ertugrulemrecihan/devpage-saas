@@ -1,39 +1,40 @@
 'use client';
 
-import { useCurrentUser } from '@/hooks/use-current-user';
-import { useEffect, useTransition } from 'react';
-import { getUserAllPageDetail } from '@/actions/user-page';
-
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { UsernameForm } from '@/app/(protected)/_components/panel/username-form';
-import { UserPageDetails } from '@/app/(protected)/_components/panel/user-page-details';
-import { AddProjectForm } from '@/app/(protected)/_components/panel/add-project-form';
-import { ProjectList } from '@/app/(protected)/_components/panel/project-list';
-import { BeatLoader } from 'react-spinners';
+import { useEffect, useLayoutEffect, useState, useTransition } from 'react';
 import { fetchProjects } from '@/actions/project';
+import { setUser } from '@/lib/features/user/userSlice';
+import { useCurrentUser } from '@/hooks/use-current-user';
+import { getUserAllPageDetail } from '@/actions/user-page';
 import { useAppDispatch, useAppSelector } from '@/lib/rtk-hooks';
 import { setProjects } from '@/lib/features/projects/projectsSlice';
-import { setUser } from '@/lib/features/user/userSlice';
+
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { ProfileImage } from '@/app/(protected)/_components/panel/profile-image';
+import { UserInfo } from '@/app/(protected)/_components/panel/user-info';
+import Image from 'next/image';
+
+import Phone from '@/public/assets/images/phone.png';
+import Haze from '@/public/assets/images/backgrounds/haze_profile.svg';
+import { BeatLoader } from 'react-spinners';
 
 const PanelPage = () => {
   const user = useAppSelector((state) => state.user);
   const projects = useAppSelector((state) => state.projects);
   const dispatch = useAppDispatch();
 
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
   const [isPending, startTransition] = useTransition();
 
   const sessionUser = useCurrentUser();
 
   useEffect(() => {
-    if (sessionUser && !user) {
+    if (sessionUser) {
+      if (user && user.id === sessionUser.id) return;
       startTransition(() => {
-        getUserAllPageDetail(sessionUser.id as string)
-          .then((data) => {
-            dispatch(setUser(data.user));
-          })
-          .catch((error) => {
-            console.error(error);
-          });
+        getUserAllPageDetail(sessionUser.id as string).then((data) => {
+          dispatch(setUser(data.user));
+        });
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -51,30 +52,42 @@ const PanelPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useLayoutEffect(() => {
+    setIsLoading(false);
+  }, []);
+
+  if (isPending || isLoading) {
+    return (
+      <div className="flex items-center justify-center w-full h-full">
+        <BeatLoader color="#3B82F6" />
+      </div>
+    );
+  }
+
   return (
-    <Card className="w-[600px]">
-      <CardHeader>
-        <p className="text-2xl font-semibold text-center">📊 Panel</p>
-      </CardHeader>
-      <CardContent>
-        {isPending ? (
-          <div className="w-full flex justify-center">
-            <BeatLoader color="#2563EB" />
+    <div className="w-full h-full grid grid-cols-2">
+      <Card className="w-full h-full rounded-[0.75rem] shadow-none border-none bg-[#FAFAFA] relative overflow-auto">
+        <CardHeader className="p-0 space-y-0 select-none">
+          <div className="w-full h-[11.313rem] relative">
+            <Image
+              src={Haze}
+              alt="Haze"
+              fill
+              className="object-bottom object-cover rounded-t-[0.75rem]"
+            />
           </div>
-        ) : (
-          <div className="space-y-2">
-            <UsernameForm />
-            <UserPageDetails />
-            <div className="w-full h-[2px] bg-secondary" />
-            <div className="w-full p-4 bg-secondary rounded-md space-y-4">
-              <AddProjectForm />
-              <div className="w-full h-[2px] bg-white" />
-              <ProjectList />
-            </div>
+        </CardHeader>
+        <CardContent className="w-full absolute top-[6.625rem]">
+          <div className="px-14 space-y-6">
+            <ProfileImage />
+            <UserInfo />
           </div>
-        )}
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+      <div className="flex items-center justify-center">
+        <Image src={Phone} alt="Phone" />
+      </div>
+    </div>
   );
 };
 
