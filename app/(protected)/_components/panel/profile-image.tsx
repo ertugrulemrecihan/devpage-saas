@@ -7,15 +7,6 @@ import { setUser as rtkSetUser } from '@/lib/features/user/userSlice';
 
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { UploadButton } from '@/components/uploadthing-button';
 import { toast } from '@/components/ui/use-toast';
 
