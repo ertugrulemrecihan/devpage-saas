@@ -8,7 +8,7 @@ import { notFound, useParams } from 'next/navigation';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import { useEffect, useLayoutEffect, useState, useTransition } from 'react';
 import { UserPageDetailsSchema } from '@/schemas';
-import { updateUserPageDetails } from '@/actions/user-page';
+import { updateUserPageDetails } from '@/actions/profile';
 import { useAppDispatch, useAppSelector } from '@/lib/rtk-hooks';
 import { setEditingMode } from '@/lib/features/profile/profileSlice';
 import { cn } from '@/lib/utils';

@@ -27,6 +27,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   callbacks: {
     async signIn({ user, account }) {
       // Allow OAuth without email verification
+      // TODO: Create User Page for OAuth users
       if (account?.provider !== 'credentials') return true;
 
       const existingUser = await getUserById(user.id as string);
