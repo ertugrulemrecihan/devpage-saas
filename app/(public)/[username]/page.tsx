@@ -207,8 +207,8 @@ const PublicUserPage = () => {
                   transition={{ duration: 0.4 }}
                   className="absolute left-0 z-50 w-full flex justify-center"
                 >
-                  <div className="bg-[#A855F7] rounded-b-lg flex items-center justify-center px-4 py-[3px]">
-                    <span className="text-xs text-white font-medium">
+                  <div className="bg-[#A855F7] rounded-b-lg flex items-center justify-center px-4 py-[3px] shadow-edit-mode-badge">
+                    <span className="text-sm text-white font-medium">
                       Edit Mode
                     </span>
                   </div>
