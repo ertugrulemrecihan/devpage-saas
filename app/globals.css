@@ -8,6 +8,59 @@ body,
   height: 100%;
 }
 
+.edit-mode-line {
+  position: absolute;
+  background: #a855f7;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.edit-mode-line.top-right {
+  top: 0;
+  width: 0;
+  height: 0;
+  left: 50%;
+  @apply animate-edit-mode-top;
+}
+.edit-mode-line.top-left {
+  top: 0;
+  width: 0;
+  height: 0;
+  right: 50%;
+  @apply animate-edit-mode-top;
+}
+
+.edit-mode-line.right-line {
+  right: 0;
+  width: 0;
+  height: 0;
+  top: 0;
+  @apply animate-edit-mode-vertical;
+}
+.edit-mode-line.left-line {
+  left: 0;
+  width: 0;
+  height: 0;
+  top: 0;
+  @apply animate-edit-mode-vertical;
+}
+
+.edit-mode-line.bottom-right {
+  bottom: 0;
+  width: 0;
+  height: 0;
+  right: 0;
+  @apply animate-edit-mode-bottom;
+}
+.edit-mode-line.bottom-left {
+  bottom: 0;
+  width: 0;
+  height: 0;
+  left: 0;
+  @apply animate-edit-mode-bottom;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
