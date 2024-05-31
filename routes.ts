@@ -10,7 +10,7 @@ export const publicRoutes = ['/', '/auth/new-verification', '/api/uploadthing'];
  * These routes do require authentication.
  * @type {string[]}
  */
-export const privateRoutes = [];
+export const privateRoutes = [''];
 
 /**
  * An array of routes that are used for error handling.
@@ -43,4 +43,4 @@ export const apiAuthPrefix = '/api/auth';
  * The default redirect path after logged in.
  * @type {string}
  */
-export const DEFAULT_LOGIN_REDIRECT = '/:username';
+export const DEFAULT_LOGIN_REDIRECT = '/redirect';
