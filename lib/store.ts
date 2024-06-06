@@ -1,14 +1,14 @@
 import { configureStore } from '@reduxjs/toolkit';
 import projectsSlice from './features/projects/projectsSlice';
-import userSlice from './features/user/userSlice';
 import profileSlice from './features/profile/profileSlice';
+import registerSlice from './features/register/registerSlice';
 
 export const makeStore = () => {
   return configureStore({
     reducer: {
       projects: projectsSlice,
-      user: userSlice,
       profile: profileSlice,
+      register: registerSlice,
     },
   });
 };

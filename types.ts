@@ -94,3 +94,7 @@ export type ProfileBackgroundColorsType = {
     borderColors: { from: string; to: string };
   };
 };
+
+export type UsernameSession = {
+  username?: string;
+};

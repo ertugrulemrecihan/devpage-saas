@@ -6,12 +6,16 @@ import authConfig from '@/auth.config';
 import { getUserById } from '@/data/user';
 import { getTwoFactorConfirmationByUserId } from './data/two-factor-confirmation';
 import { getAccountByUserId } from './data/account';
+import {
+  clearUsernameSession,
+  fetchUsernameInSession,
+} from './actions/register';
+import { getUserPageByUserId } from './data/user-page';
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   pages: {
     signIn: '/auth/login',
     error: '/auth/error',
-    newUser: '/redirect',
   },
   events: {
     async linkAccount({ user }) {
@@ -24,31 +28,64 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         },
       });
     },
+    async signIn(message) {
+      if (message.user) {
+        const userPage = await getUserPageByUserId(message.user.id as string);
+
+        if (!userPage) {
+          await db.userPage.create({
+            data: {
+              user: {
+                connect: {
+                  id: message.user.id,
+                },
+              },
+            },
+          });
+
+          await clearUsernameSession();
+        }
+      }
+    },
   },
   callbacks: {
     async signIn({ user, account }) {
-      // Allow OAuth without email verification
-      // TODO: Create User Page for OAuth users
-      if (account?.provider !== 'credentials') return true;
-
       const existingUser = await getUserById(user.id as string);
 
-      // Prevent sign in without email verification
-      if (!existingUser?.emailVerified) return false;
+      // Allow OAuth without email verification
+      // TODO: Create User Page for OAuth users
+      if (account?.provider !== 'credentials') {
+        const sessionUsername = await fetchUsernameInSession();
 
-      if (existingUser.isTwoFactorEnabled) {
-        const twoFactorConfirmation = await getTwoFactorConfirmationByUserId(
-          existingUser.id
-        );
+        if (!existingUser && !sessionUsername.username) {
+          return '/auth/login?error=AccountNotFound';
+        }
 
-        if (!twoFactorConfirmation) return false;
+        if (!sessionUsername) return false;
 
-        // Delete two factor confirmation for next login
-        await db.twoFactorConfirmation.delete({
-          where: {
-            id: twoFactorConfirmation.id,
-          },
-        });
+        user.username = sessionUsername.username as string;
+
+        return true;
+      }
+
+      if (existingUser) {
+        // Prevent sign in without email verification
+        if (!existingUser?.emailVerified) return false;
+
+        if (existingUser.isTwoFactorEnabled) {
+          const twoFactorConfirmation = await getTwoFactorConfirmationByUserId(
+            existingUser.id
+          );
+
+          if (!twoFactorConfirmation) return false;
+
+          // Delete two factor confirmation for next login
+          await db.twoFactorConfirmation.delete({
+            where: {
+              id: twoFactorConfirmation.id,
+            },
+          });
+        }
       }
 
       return true;

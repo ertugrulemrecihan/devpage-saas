@@ -4,6 +4,7 @@ import * as z from 'zod';
 import { getUserByIdWithUserPage } from '@/data/user';
 import { db } from '@/lib/db';
 import { UserPageDetailsSchema } from '@/schemas';
+import { currentUser } from '@/lib/auth';
 
 export const checkUser = async (username: string) => {
   const user = await db.user.findUnique({
@@ -58,6 +59,14 @@ export const updateUserPageDetails = async (
   data: z.infer<typeof UserPageDetailsSchema>
 ) => {
   try {
+    const sessionUser = await currentUser();
+
+    if (sessionUser?.id !== id) {
+      return {
+        error: 'Unauthorized!',
+      };
+    }
+
     const user = await getUserByIdWithUserPage(id);
 
     if (!user) {
@@ -66,24 +75,11 @@ export const updateUserPageDetails = async (
       };
     }
 
-    let userPageData = {};
-
-    if (data.biography === undefined && data.location !== undefined) {
-      userPageData = {
-        location: data.location,
-      };
-    } else if (data.biography !== undefined && data.location === undefined) {
-      userPageData = {
-        biography: data.biography,
-      };
-    } else if (data.biography !== undefined && data.location !== undefined) {
-      userPageData = {
-        biography: data.biography,
-        location: data.location,
-      };
-    } else {
-      userPageData = {};
-    }
+    let userPageData = {
+      biography: data.biography,
+      location: data.location,
+      contactEmail: data.contactEmail,
+    };
 
     const updatedUser = await db.user.update({
       where: { id },

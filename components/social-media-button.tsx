@@ -12,8 +12,10 @@ import Linkedin from '@/public/assets/icons/linkedin.svg';
 import Dribbble from '@/public/assets/icons/dribbble.svg';
 import Instagram from '@/public/assets/icons/instagram.svg';
 import Mail from '@/public/assets/icons/mail.svg';
+import { useAppSelector } from '@/lib/rtk-hooks';
 
-type SocialMediaButtonProps = {
+interface SocialMediaButtonProps
+  extends React.InputHTMLAttributes<HTMLInputElement> {
   /**
    * The type of social media button.
    */
@@ -29,10 +31,8 @@ type SocialMediaButtonProps = {
    * The URL to redirect to when the button is clicked.
    */
   url: string;
-  value?: string;
-  onChange?: (e: ChangeEvent<HTMLInputElement>) => void;
   isOpenable?: boolean;
-};
+}
 
 type ButtonStyle = {
   icon: StaticImageData;
@@ -44,10 +44,11 @@ type ButtonStyle = {
 export const SocialMediaButton = ({
   type,
   url,
-  value,
-  onChange,
   isOpenable = false,
+  ...props
 }: SocialMediaButtonProps) => {
+  const pageIsEditing = useAppSelector((state) => state.profile.isEditMode);
+
   const [buttonStyle, setButtonStyle] = useState<ButtonStyle>();
   const [isEditing, setIsEditing] = useState(false);
 
@@ -117,7 +118,7 @@ export const SocialMediaButton = ({
   return (
     <div
       className={cn(
-        'p-2 rounded-lg cursor-pointer shadow-social-media-icon h-8 flex items-center justify-center gap-2'
+        'px-2 rounded-lg cursor-pointer shadow-social-media-icon flex items-center justify-center h-[2.125rem] min-w-[2.125rem]'
       )}
       style={{
         background: buttonStyle?.background,
@@ -127,34 +128,39 @@ export const SocialMediaButton = ({
         if (isOpenable) {
           setIsEditing(true);
         }
+
+        if (!pageIsEditing) {
+          window.location.href = url;
+        }
       }}
     >
       <Image
         src={buttonStyle?.icon || ''}
         alt="Social Media Icon"
-        width={16}
-        height={16}
+        width={18}
+        height={18}
       />
       <AnimatePresence>
         {isEditing && (
           <motion.div
             initial={{ width: 0, opacity: 0 }}
-            animate={{ width: '100px', opacity: 1 }}
+            animate={{ width: '120px', opacity: 1 }}
             exit={{ width: 0, opacity: 0 }}
             transition={{ duration: 0.2 }}
+            className="pl-2"
           >
             <Input
-              className="w-full p-0 shadow-none border-none focus-within:ring-0 focus-visible:ring-0 text-white text-sm placeholder:text-white"
+              className="w-full p-0 shadow-none border-none focus-within:ring-0 focus-visible:ring-0 text-white text-sm placeholder:text-zinc-300"
               style={{
                 color: buttonStyle?.inputColor,
               }}
               placeholder="Username"
               autoFocus
-              onBlur={() => {
+              {...props}
+              onBlur={(e) => {
                 setIsEditing(false);
+                props.onBlur && props.onBlur(e);
               }}
-              defaultValue={value || undefined}
-              onChange={onChange}
             />
           </motion.div>
         )}

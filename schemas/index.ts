@@ -20,6 +20,31 @@ export const RegisterSchema = z.object({
   name: z.string().min(1, {
     message: 'Name is required',
   }),
+  username: z.optional(
+    z
+      .string({
+        required_error: 'Username is required',
+      })
+      .min(3, {
+        message: 'Username must be at least 3 characters long',
+      })
+      .regex(/^[a-z0-9_]*$/, {
+        message: 'Only lowercase letters, numbers and underscores are allowed!',
+      })
+  ),
+});
+
+export const UsernameSchema = z.object({
+  username: z
+    .string({
+      required_error: 'Username is required',
+    })
+    .min(3, {
+      message: 'Username must be at least 3 characters long',
+    })
+    .regex(/^[a-z0-9_]*$/, {
+      message: 'Only lowercase letters, numbers and underscores are allowed!',
+    }),
 });
 
 export const ResetSchema = z.object({
@@ -55,6 +80,7 @@ export const UserPageDetailsSchema = z.object({
       .max(200, {
         message: 'Maximum 200 characters allowed',
       })
+      .or(z.literal(''))
   ),
   location: z.optional(
     z
@@ -64,6 +90,7 @@ export const UserPageDetailsSchema = z.object({
       .max(50, {
         message: 'Maximum 50 characters allowed',
       })
+      .or(z.literal(''))
   ),
   contactEmail: z.optional(
     z
@@ -73,6 +100,7 @@ export const UserPageDetailsSchema = z.object({
       .email({
         message: 'Invalid email',
       })
+      .or(z.literal(''))
   ),
 });
 

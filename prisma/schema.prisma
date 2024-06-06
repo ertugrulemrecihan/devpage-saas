@@ -48,6 +48,7 @@ model Project {
   description     String?  @db.Text
   url             String?
   statusIsVisible Boolean  @default(false)
+  index           Int      @default(0)
 
   category   Category? @relation(fields: [categoryId], references: [id])
   categoryId String?

@@ -1,8 +1,10 @@
+import { UserForProfile } from '@/types';
 import { createSlice } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 
 interface ProfileState {
   isEditMode: boolean;
+  user: UserForProfile | undefined;
 }
 
 const initialState = {} as ProfileState;
@@ -19,8 +21,16 @@ const profileSlice = createSlice({
         return { payload: isEditMode };
       },
     },
+    setProfileUser: {
+      reducer(state, action: PayloadAction<UserForProfile>) {
+        state.user = action.payload;
+      },
+      prepare(user: UserForProfile) {
+        return { payload: user };
+      },
+    },
   },
 });
 
-export const { setEditingMode } = profileSlice.actions;
+export const { setEditingMode, setProfileUser } = profileSlice.actions;
 export default profileSlice.reducer;

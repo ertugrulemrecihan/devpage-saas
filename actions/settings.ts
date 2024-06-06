@@ -44,28 +44,35 @@ export const changeProfilePhoto = async (
     },
     select: {
       id: true,
-      email: true,
       username: true,
-      name: true,
       image: true,
+      name: true,
+      email: true,
       userPage: {
         select: {
-          id: true,
           biography: true,
           location: true,
+          backgroundStyle: true,
+          projectCardsStyle: true,
+          socialMediaLinksStyle: true,
+          socialMediaLinks: true,
           contactEmail: true,
           projects: {
             select: {
-              id: true,
-              name: true,
-              category: true,
-              description: true,
-              url: true,
               image: true,
-              categoryId: true,
-              statusIsVisible: true,
-              status: true,
-              statusId: true,
+              name: true,
+              description: true,
+              category: {
+                select: {
+                  name: true,
+                },
+              },
+              status: {
+                select: {
+                  name: true,
+                },
+              },
+              url: true,
             },
           },
         },
@@ -108,28 +115,35 @@ export const deleteProfilePhoto = async () => {
     },
     select: {
       id: true,
-      email: true,
       username: true,
-      name: true,
       image: true,
+      name: true,
+      email: true,
       userPage: {
         select: {
-          id: true,
           biography: true,
           location: true,
+          backgroundStyle: true,
+          projectCardsStyle: true,
+          socialMediaLinksStyle: true,
+          socialMediaLinks: true,
           contactEmail: true,
           projects: {
             select: {
-              id: true,
-              name: true,
-              category: true,
-              description: true,
-              url: true,
               image: true,
-              categoryId: true,
-              statusIsVisible: true,
-              status: true,
-              statusId: true,
+              name: true,
+              description: true,
+              category: {
+                select: {
+                  name: true,
+                },
+              },
+              status: {
+                select: {
+                  name: true,
+                },
+              },
+              url: true,
             },
           },
         },

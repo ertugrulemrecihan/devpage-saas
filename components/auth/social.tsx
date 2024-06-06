@@ -5,7 +5,6 @@ import { FaGithub } from 'react-icons/fa';
 
 import { Button } from '@/components/ui/button';
 import { signIn } from 'next-auth/react';
-import { DEFAULT_LOGIN_REDIRECT } from '@/routes';
 
 interface SocialProps {
   callbackUrl?: string;
@@ -13,7 +12,7 @@ interface SocialProps {
 
 export const Social = ({ callbackUrl }: SocialProps) => {
   const onClick = (provider: 'google' | 'github') => {
-    signIn(provider, { callbackUrl: callbackUrl || DEFAULT_LOGIN_REDIRECT });
+    signIn(provider, { callbackUrl: callbackUrl || '/auth/login' });
   };
 
   return (
