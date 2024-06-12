@@ -61,7 +61,12 @@ const UserForProfile = Prisma.validator<Prisma.UserArgs>()({
         backgroundStyle: true,
         projectCardsStyle: true,
         socialMediaLinksStyle: true,
-        socialMediaLinks: true,
+        socialMediaLinks: {
+          select: {
+            type: true,
+            username: true,
+          },
+        },
         contactEmail: true,
         projects: {
           select: {

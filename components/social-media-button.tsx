@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import { ChangeEvent, useEffect, useState } from 'react';
+import { ChangeEvent, useEffect, useRef, useState } from 'react';
 
 import { Input } from '@/components/ui/input';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -47,10 +47,26 @@ export const SocialMediaButton = ({
   isOpenable = false,
   ...props
 }: SocialMediaButtonProps) => {
+  const linkRef = useRef<HTMLDivElement>(null);
+
   const pageIsEditing = useAppSelector((state) => state.profile.isEditMode);
 
   const [buttonStyle, setButtonStyle] = useState<ButtonStyle>();
   const [isEditing, setIsEditing] = useState(false);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (linkRef.current && !linkRef.current.contains(e.target as Node)) {
+        setIsEditing(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const buttonStyles = {
     github: {
@@ -117,6 +133,7 @@ export const SocialMediaButton = ({
 
   return (
     <div
+      ref={linkRef}
       className={cn(
         'px-2 rounded-lg cursor-pointer shadow-social-media-icon flex items-center justify-center h-[2.125rem] min-w-[2.125rem]'
       )}
@@ -130,7 +147,7 @@ export const SocialMediaButton = ({
         }
 
         if (!pageIsEditing) {
-          window.location.href = url;
+          window.open(url, '_blank');
         }
       }}
     >
@@ -150,7 +167,10 @@ export const SocialMediaButton = ({
             className="pl-2"
           >
             <Input
-              className="w-full p-0 shadow-none border-none focus-within:ring-0 focus-visible:ring-0 text-white text-sm placeholder:text-zinc-300"
+              className={cn(
+                'w-full p-0 shadow-none border-none focus-within:ring-0 focus-visible:ring-0 text-white text-sm placeholder:text-slate-200',
+                props.className
+              )}
               style={{
                 color: buttonStyle?.inputColor,
               }}

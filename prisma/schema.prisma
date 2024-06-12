@@ -77,9 +77,8 @@ model SocialMediaLink {
   id         String   @id @default(cuid())
   userPage   UserPage @relation(fields: [userPageId], references: [id], onDelete: Cascade)
   userPageId String
-  name       String
-  iconName   String
-  url        String
+  type       String
+  username   String
 }
 
 model Account {

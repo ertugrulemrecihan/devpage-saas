@@ -46,23 +46,6 @@ const UserInformation = () => {
       [key]: value,
     });
 
-    if (validatedValue.error) {
-      clearTimeout(errorTimer);
-
-      const timer = setTimeout(
-        () =>
-          toast({
-            title: 'Error!',
-            description: validatedValue.error.issues[0].message,
-            variant: 'error',
-            duration: 2000,
-          }),
-        500
-      );
-
-      setErrorTimer(timer);
-    }
-
     if (validatedValue.success) {
       if (key === 'name') {
         dispatch(
@@ -87,6 +70,20 @@ const UserInformation = () => {
         [key]: validatedValue.data[key as keyof typeof validatedValue.data],
       });
     }
+
+    clearTimeout(errorTimer);
+
+    const timer = setTimeout(() => {
+      if (validatedValue.error)
+        return toast({
+          title: 'Error!',
+          description: validatedValue.error.issues[0].message,
+          variant: 'error',
+          duration: 2000,
+        });
+    }, 500);
+
+    setErrorTimer(timer);
   };
 
   const updateUserDetails = (data: z.infer<typeof UserPageDetailsSchema>) => {
@@ -94,8 +91,6 @@ const UserInformation = () => {
       autoSaveTransition(async () => {
         await updateUserPageDetails(profileUser?.id as string, data)
           .then((response) => {
-            console.log(data);
-
             if (response?.success) {
               if (Object.keys(data).includes('name')) {
                 dispatch(

@@ -98,7 +98,7 @@ export const UserPageDetailsSchema = z.object({
         message: 'Invalid email',
       })
       .email({
-        message: 'Invalid email',
+        message: 'Invalid email address',
       })
       .or(z.literal(''))
   ),
@@ -138,4 +138,91 @@ export const ProjectSchema = z.object({
   size: z.enum(['small', 'medium']).default('small'),
   category: z.optional(z.string()),
   status: z.optional(z.string()),
+});
+
+export const SocialLinksSchema = z.object({
+  instagram: z.optional(
+    z
+      .string()
+      .min(1, {
+        message: 'Minimum 1 character required',
+      })
+      .max(30, {
+        message: 'Maximum 30 characters allowed',
+      })
+      .regex(/^[a-zA-Z0-9._]{1,30}(?<![._])$/, {
+        message: 'Invalid Instagram username',
+      })
+      .or(z.literal(''))
+  ),
+  github: z.optional(
+    z
+      .string()
+      .min(1, {
+        message: 'Minimum 1 character required',
+      })
+      .max(39, {
+        message: 'Maximum 39 characters allowed',
+      })
+      .regex(/^[a-zA-Z0-9-]{1,39}(?<!-)$/, {
+        message: 'Invalid Github username',
+      })
+      .or(z.literal(''))
+  ),
+  linkedin: z.optional(
+    z
+      .string()
+      .min(3, {
+        message: 'Minimum 3 characters required',
+      })
+      .max(100, {
+        message: 'Maximum 100 characters allowed',
+      })
+      .regex(/^[a-zA-Z0-9-]{3,100}$/, {
+        message: 'Invalid Linkedin username',
+      })
+      .or(z.literal(''))
+  ),
+  dribbble: z.optional(
+    z
+      .string()
+      .min(2, {
+        message: 'Minimum 2 characters required',
+      })
+      .max(30, {
+        message: 'Maximum 30 characters allowed',
+      })
+      .regex(/^[a-zA-Z0-9_]{2,30}$/, {
+        message: 'Invalid Dribbble username',
+      })
+      .or(z.literal(''))
+  ),
+  youtube: z.optional(
+    z
+      .string()
+      .min(3, {
+        message: 'Minimum 3 characters required',
+      })
+      .max(23, {
+        message: 'Maximum 23 characters allowed',
+      })
+      .regex(/^[a-zA-Z0-9_-]{3,23}$/, {
+        message: 'Invalid Youtube username',
+      })
+      .or(z.literal(''))
+  ),
+  x: z.optional(
+    z
+      .string()
+      .min(4, {
+        message: 'Minimum 4 characters required',
+      })
+      .max(50, {
+        message: 'Maximum 50 characters allowed',
+      })
+      .regex(/^[a-zA-Z0-9_]{4,50}$/, {
+        message: 'Invalid X username',
+      })
+      .or(z.literal(''))
+  ),
 });
