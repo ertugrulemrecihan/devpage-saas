@@ -215,7 +215,7 @@ const UserInformation = () => {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="max-w-[300px] flex items-center gap-[6px] h-6"
+          className="max-w-[300px] flex items-center gap-[6px]"
         >
           {isOwner && isPageEditing ? (
             <InlineEdit
