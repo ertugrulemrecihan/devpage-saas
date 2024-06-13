@@ -135,7 +135,7 @@ export const SocialMediaButton = ({
     <div
       ref={linkRef}
       className={cn(
-        'px-2 rounded-lg cursor-pointer shadow-social-media-icon flex items-center justify-center h-[2.125rem] min-w-[2.125rem]'
+        'px-2 rounded-lg cursor-pointer shadow-social-media-icon flex items-center justify-center h-9 min-w-9'
       )}
       style={{
         background: buttonStyle?.background,
