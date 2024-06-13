@@ -15,6 +15,7 @@ import ProfileBanner from './_components/profile-banner';
 import UserInformation from './_components/user-information';
 import OwnerActions from './_components/owner-actions';
 import SocialMediaLinks from './_components/social-media-links';
+import ProfileBackgroundDropdown from './_components/profile-background-dropdown';
 
 const PublicUserPage = () => {
   const isPageEditing = useAppSelector((state) => state.profile.isEditMode);
@@ -71,7 +72,9 @@ const PublicUserPage = () => {
             <ProfileBanner />
 
             <div className="w-full pt-[7.5rem]">
-              <div className="w-full container">
+              <div className="w-full container relative">
+                <ProfileBackgroundDropdown />
+
                 <div className="w-full flex flex-col lg:flex-row md:items-end items-start md:justify-between">
                   <div className="w-full min-h-[16.5rem] flex flex-col">
                     <ProfileImage />

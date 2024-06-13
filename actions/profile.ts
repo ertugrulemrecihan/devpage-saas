@@ -5,6 +5,7 @@ import { getUserByIdWithUserPage } from '@/data/user';
 import { db } from '@/lib/db';
 import { SocialLinksSchema, UserPageDetailsSchema } from '@/schemas';
 import { currentUser } from '@/lib/auth';
+import { BACKGROUND_STYLE } from '@prisma/client';
 
 export const checkUser = async (username: string) => {
   const user = await db.user.findUnique({
@@ -235,4 +236,43 @@ export const createOrUpdateSocialMediaLink = async (
   });
 
   return { success: 'Saved! ✅', userPage: updatedUserPage };
+};
+
+export const updateUserPageBackgroundStyle = async (
+  backgroundStyle: string
+) => {
+  const sessionUser = await currentUser();
+
+  if (!sessionUser) {
+    return {
+      error: 'Unauthorized!',
+    };
+  }
+
+  const userPage = await db.userPage.findUnique({
+    where: { userId: sessionUser.id },
+    select: {
+      id: true,
+      backgroundStyle: true,
+    },
+  });
+
+  if (!userPage) {
+    return {
+      error: 'Unauthorized!',
+    };
+  }
+
+  const styleName = Object.entries(backgroundStyle)[0][1].toUpperCase();
+
+  await db.userPage.update({
+    where: { id: userPage.id, userId: sessionUser.id },
+    data: {
+      backgroundStyle: {
+        set: styleName as BACKGROUND_STYLE,
+      },
+    },
+  });
+
+  return { success: 'Saved! ✅' };
 };
