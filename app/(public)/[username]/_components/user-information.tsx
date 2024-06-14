@@ -113,7 +113,7 @@ const UserInformation = () => {
 
               toast({
                 title: 'Success!',
-                description: 'Details updated successfully!',
+                description: response.success,
                 variant: 'success',
                 duration: 1000,
               });

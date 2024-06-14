@@ -1,18 +1,18 @@
 import { cn } from '@/lib/utils';
-import { ChangeEvent, useEffect, useRef, useState } from 'react';
+import { useAppSelector } from '@/lib/rtk-hooks';
+import { useEffect, useRef, useState } from 'react';
 
 import { Input } from '@/components/ui/input';
 import { motion, AnimatePresence } from 'framer-motion';
-import Image, { StaticImageData } from 'next/image';
 
-import X from '@/public/assets/icons/x.svg';
-import Github from '@/public/assets/icons/github.svg';
-import Youtube from '@/public/assets/icons/youtube.svg';
-import Linkedin from '@/public/assets/icons/linkedin.svg';
-import Dribbble from '@/public/assets/icons/dribbble.svg';
-import Instagram from '@/public/assets/icons/instagram.svg';
-import Mail from '@/public/assets/icons/mail.svg';
-import { useAppSelector } from '@/lib/rtk-hooks';
+import GithubIcon from '@/public/assets/icons/github';
+import XIcon from '@/public/assets/icons/x';
+import YouTubeIcon from '@/public/assets/icons/youtube';
+import InstagramIcon from '@/public/assets/icons/instagram';
+import InstagramGradientIcon from '@/public/assets/icons/instagram-gradient';
+import DribbbleIcon from '@/public/assets/icons/dribbble';
+import LinkedInIcon from '@/public/assets/icons/linkedin';
+import MailIcon from '@/public/assets/icons/mail';
 
 interface SocialMediaButtonProps
   extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -32,19 +32,21 @@ interface SocialMediaButtonProps
    */
   url: string;
   isOpenable?: boolean;
+  variant?: 'fill' | 'line' | 'ghost';
 }
 
 type ButtonStyle = {
-  icon: StaticImageData;
+  icon: React.ReactNode;
   background: string;
   border?: string;
-  inputColor?: string;
+  textColor?: string;
 };
 
 export const SocialMediaButton = ({
   type,
   url,
   isOpenable = false,
+  variant = 'fill',
   ...props
 }: SocialMediaButtonProps) => {
   const linkRef = useRef<HTMLDivElement>(null);
@@ -70,35 +72,76 @@ export const SocialMediaButton = ({
 
   const buttonStyles = {
     github: {
-      icon: Github,
+      icon: (
+        <GithubIcon
+          width={18}
+          height={18}
+          variant={variant === 'fill' ? 'fill' : 'line'}
+        />
+      ),
       background: '#0F141A',
+      textColor: variant === 'fill' ? '#FFFFFF' : '#0F141A',
+      border: '#0F141A',
     },
     x: {
-      icon: X,
+      icon: (
+        <XIcon
+          width={18}
+          height={18}
+          variant={variant === 'fill' ? 'fill' : 'line'}
+        />
+      ),
       background: '#1D9BF0',
+      textColor: variant === 'fill' ? '#FFFFFF' : '#1D9BF0',
+      border: '#1D9BF0',
     },
     youtube: {
-      icon: Youtube,
-      background: '#FF0000',
+      icon: (
+        <YouTubeIcon
+          width={18}
+          height={18}
+          variant={variant === 'fill' ? 'fill' : 'line'}
+        />
+      ),
+      background: '#FC0B1C',
+      textColor: variant === 'fill' ? '#FFFFFF' : '#FC0B1C',
+      border: '#FC0B1C',
     },
     instagram: {
-      icon: Instagram,
+      icon:
+        variant === 'fill' ? (
+          <InstagramIcon width={18} height={18} />
+        ) : (
+          <InstagramGradientIcon width={18} height={18} />
+        ),
       background:
         'radial-gradient(102.88% 102.89% at 60.65% 104.95%, rgba(140, 58, 170, 0.00) 64%, #8C3AAA 100%), radial-gradient(130.54% 130.55% at 13.29% 100.47%, #FA8F21 9%, #D82D7E 78%)',
+      textColor: variant === 'fill' ? '#FFFFFF' : '#8C3AAA',
+      border: '#8C3AAA',
     },
     dribbble: {
-      icon: Dribbble,
+      icon: <DribbbleIcon width={18} height={18} />,
       background: '#FFABE7',
+      textColor: variant === 'fill' ? '#FFFFFF' : '#FFABE7',
+      border: '#FFABE7',
     },
     linkedin: {
-      icon: Linkedin,
+      icon: (
+        <LinkedInIcon
+          width={18}
+          height={18}
+          variant={variant === 'fill' ? 'fill' : 'line'}
+        />
+      ),
       background: '#006699',
+      textColor: variant === 'fill' ? '#FFFFFF' : '#006699',
+      border: '#006699',
     },
     email: {
-      icon: Mail,
+      icon: <MailIcon width={18} height={18} />,
       background: '#FDFDFD',
       border: '1px solid #E5E5E5',
-      inputColor: '#111111',
+      textColor: '#111111',
     },
   };
 
@@ -129,7 +172,7 @@ export const SocialMediaButton = ({
         setButtonStyle(buttonStyles.github);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [type]);
+  }, [type, variant]);
 
   return (
     <div
@@ -138,8 +181,14 @@ export const SocialMediaButton = ({
         'px-2 rounded-lg cursor-pointer shadow-social-media-icon flex items-center justify-center h-9 min-w-9'
       )}
       style={{
-        background: buttonStyle?.background,
-        border: buttonStyle?.border,
+        background:
+          variant === 'fill' ? buttonStyle?.background : 'transparent',
+        border:
+          variant === 'ghost'
+            ? '1px solid #E5E5E5'
+            : variant === 'line'
+            ? `1px solid ${buttonStyle?.border}`
+            : 'none',
       }}
       onClick={() => {
         if (isOpenable) {
@@ -151,12 +200,7 @@ export const SocialMediaButton = ({
         }
       }}
     >
-      <Image
-        src={buttonStyle?.icon || ''}
-        alt="Social Media Icon"
-        width={18}
-        height={18}
-      />
+      {buttonStyle?.icon && buttonStyle.icon}
       <AnimatePresence>
         {isEditing && (
           <motion.div
@@ -169,10 +213,11 @@ export const SocialMediaButton = ({
             <Input
               className={cn(
                 'w-full p-0 shadow-none border-none focus-within:ring-0 focus-visible:ring-0 text-white text-sm placeholder:text-slate-200',
+                { 'placeholder:text-slate-500': variant !== 'fill' },
                 props.className
               )}
               style={{
-                color: buttonStyle?.inputColor,
+                color: buttonStyle?.textColor,
               }}
               placeholder="Username"
               autoFocus

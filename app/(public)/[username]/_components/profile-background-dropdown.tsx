@@ -105,7 +105,7 @@ const ProfileBackgroundDropdown = () => {
                   <div
                     className="w-6 h-6 ring-2 ring-white rounded-md"
                     style={{
-                      background: `linear-gradient(0deg, ${value.borderColors.from}, #F1F1F1)`,
+                      background: `linear-gradient(0deg, ${value.backgroundColor}, #F1F1F1)`,
                     }}
                   ></div>
                   <span className="font-medium text-sm text-white capitalize">

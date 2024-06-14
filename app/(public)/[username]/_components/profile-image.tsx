@@ -16,8 +16,6 @@ import PhotoEdit from '@/public/assets/icons/photo-edit.svg';
 import Trash from '@/public/assets/icons/trash.svg';
 import DefaultImage from '@/public/assets/images/default-image.jpg';
 
-// import '@uploadthing/react/styles.css';
-
 export const ProfileImage = () => {
   const isPageEditing = useAppSelector((state) => state.profile.isEditMode);
   const userProfile = useAppSelector((state) => state.profile.user);

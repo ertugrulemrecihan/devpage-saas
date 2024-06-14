@@ -75,15 +75,19 @@ const PublicUserPage = () => {
               <div className="w-full container relative">
                 <ProfileBackgroundDropdown />
 
-                <div className="w-full flex flex-col lg:flex-row md:items-end items-start md:justify-between">
-                  <div className="w-full min-h-[16.5rem] flex flex-col">
-                    <ProfileImage />
-                    <UserInformation />
+                <div className="w-full space-y-6">
+                  <div className="w-full flex flex-col lg:flex-row md:items-end items-start md:justify-between">
+                    <div className="w-full min-h-[16.5rem] flex flex-col">
+                      <ProfileImage />
+                      <UserInformation />
+                    </div>
+                    <div className="w-full h-full flex flex-row-reverse lg:flex-col items-end justify-between min-h-[9.875rem]">
+                      <OwnerActions />
+                      <SocialMediaLinks />
+                    </div>
                   </div>
-                  <div className="w-full h-full flex flex-row-reverse lg:flex-col items-end justify-between min-h-[9.875rem]">
-                    <OwnerActions />
-                    <SocialMediaLinks />
-                  </div>
+                  <div className="h-[1px] w-full bg-[#E5E5E5]"></div>
+                  {/* TODO: Add projects */}
                 </div>
               </div>
             </div>
