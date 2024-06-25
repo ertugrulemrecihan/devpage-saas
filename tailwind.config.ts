@@ -1,5 +1,4 @@
 import type { Config } from 'tailwindcss';
-import { withUt } from 'uploadthing/tw';
 
 const config = {
   darkMode: ['class'],
@@ -106,6 +105,8 @@ const config = {
         'edit-mode':
           '0px 1px 4px 0px rgba(131, 95, 237, 0.45), 0px 0px 7px 5px rgba(131, 95, 237, 0.16)',
         'edit-mode-badge': '0px 2px 4px 0px rgba(0, 0, 0, 0.04)',
+        'project-card-button': '0px 0px 0px 1px #835FED',
+        'project-edit-mode': '0px 12px 20px 0px rgba(0, 0, 0, 0.10)',
       },
     },
   },

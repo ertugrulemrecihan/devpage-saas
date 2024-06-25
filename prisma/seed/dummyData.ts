@@ -1,69 +1,69 @@
-import { Category, Prisma, ProjectStatus } from '@prisma/client';
+import { Category, ProjectStatus } from '@prisma/client';
 
 export const categories: Category[] = [
   {
     id: null as unknown as string,
-    name: '🤖 Artificial Intelligence',
+    name: 'Artificial Intelligence',
     description: null,
   },
   {
     id: null as unknown as string,
-    name: '✍️ Productivity',
+    name: 'Productivity',
     description: null,
   },
   {
     id: null as unknown as string,
-    name: '📚 Education',
+    name: 'Education',
     description: null,
   },
   {
     id: null as unknown as string,
-    name: '🐲, No Code',
+    name: 'No Code',
     description: null,
   },
   {
     id: null as unknown as string,
-    name: '💬 Social Media',
+    name: 'Social Media',
     description: null,
   },
   {
     id: null as unknown as string,
-    name: '🛍️ E-Commerce',
+    name: 'E-Commerce',
     description: null,
   },
   {
     id: null as unknown as string,
-    name: '📈 Analytics',
+    name: 'Analytics',
     description: null,
   },
   {
     id: null as unknown as string,
-    name: '🦇 Web 3',
+    name: 'Web 3',
     description: null,
   },
   {
     id: null as unknown as string,
-    name: '👓 Design Tools',
+    name: 'Design Tools',
     description: null,
   },
   {
     id: null as unknown as string,
-    name: '🧑‍💻 Developer Tools',
+    name: 'Developer Tools',
     description: null,
   },
   {
     id: null as unknown as string,
-    name: '📊 Marketing',
+    name: 'Marketing',
     description: null,
   },
   {
     id: null as unknown as string,
-    name: '💰 Finance',
+    name: 'Finance',
     description: null,
   },
   {
     id: null as unknown as string,
-    name: '🔮 Others',
+    name: 'Others',
     description: null,
   },
 ];
@@ -71,32 +71,32 @@ export const categories: Category[] = [
 export const projectStatuses: ProjectStatus[] = [
   {
     id: null as unknown as string,
-    name: '🏗️ Building...',
+    name: 'Building...',
     description: null,
   },
   {
     id: null as unknown as string,
-    name: '🟢 Active',
+    name: 'Active',
     description: null,
   },
   {
     id: null as unknown as string,
-    name: '☕️ On hold',
+    name: 'On hold',
     description: null,
   },
   {
     id: null as unknown as string,
-    name: '🤝 For Sale',
+    name: 'For Sale',
     description: null,
   },
   {
     id: null as unknown as string,
-    name: '💰 Acquired',
+    name: 'Purchased',
     description: null,
   },
   {
     id: null as unknown as string,
-    name: '❌ Discontinued',
+    name: 'Discontinued',
     description: null,
   },
 ];

@@ -134,7 +134,6 @@ export const ProjectSchema = z.object({
       })
   ),
   image: z.optional(z.string().url({ message: 'Invalid image URL' })),
-  statusIsVisible: z.boolean().default(false),
   size: z.enum(['small', 'medium']).default('small'),
   category: z.optional(z.string()),
   status: z.optional(z.string()),
@@ -225,4 +224,68 @@ export const SocialLinksSchema = z.object({
       })
       .or(z.literal(''))
   ),
+});
+
+export const ProjectEditSchema = z.object({
+  image: z
+    .optional(
+      z
+        .string({ message: 'Invalid image URL' })
+        .url({ message: 'Invalid image URL' })
+    )
+    .or(z.literal('')),
+  name: z
+    .optional(
+      z
+        .string({
+          message: 'Invalid name',
+        })
+        .min(1, {
+          message: 'Name is required',
+        })
+        .max(75, {
+          message: 'Maximum 75 characters allowed',
+        })
+    )
+    .or(z.literal('')),
+  description: z
+    .optional(
+      z
+        .string({
+          message: 'Invalid description',
+        })
+        .max(200, {
+          message: 'Maximum 200 characters allowed',
+        })
+    )
+    .or(z.literal('')),
+  url: z
+    .optional(
+      z.string({ message: 'Invalid URL' }).url({ message: 'Invalid URL' })
+    )
+    .or(z.literal('')),
+  category: z
+    .optional(
+      z.string({
+        message: 'Invalid category',
+      })
+    )
+    .or(z.literal('')),
+  project_status: z
+    .optional(
+      z.string({
+        message: 'Invalid status',
+      })
+    )
+    .or(z.literal('')),
+  revenue: z
+    .optional(
+      z
+        .string({
+          message: 'Invalid revenue (eq. 1000.00)',
+        })
+        .max(1000000000, 'Revenue must be less than 1,000,000,000')
+        .regex(/^[0-9]+(\.[0-9]{1,2})?$/, 'Invalid revenue (eq. 1000.00)')
+    )
+    .or(z.literal('')),
 });

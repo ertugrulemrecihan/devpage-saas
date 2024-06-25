@@ -16,6 +16,7 @@ import UserInformation from './_components/user-information';
 import OwnerActions from './_components/owner-actions';
 import SocialMediaLinks from './_components/social-media-links';
 import ProfileBackgroundDropdown from './_components/profile-background-dropdown';
+import Projects from './_components/projects';
 
 const PublicUserPage = () => {
   const isPageEditing = useAppSelector((state) => state.profile.isEditMode);
@@ -66,9 +67,9 @@ const PublicUserPage = () => {
       >
         <PageEditingBorders />
 
-        <div className="w-full h-full bg-[#FAFAFA] rounded-lg overflow-y-auto">
+        <EditModeBadge />
+        <div className="w-full h-full bg-white rounded-lg overflow-y-auto">
           <div className="w-full relative">
-            <EditModeBadge />
             <ProfileBanner />
 
             <div className="w-full pt-[7.5rem]">
@@ -87,7 +88,7 @@ const PublicUserPage = () => {
                     </div>
                   </div>
                   <div className="h-[1px] w-full bg-[#E5E5E5]"></div>
-                  {/* TODO: Add projects */}
+                  <Projects />
                 </div>
               </div>
             </div>

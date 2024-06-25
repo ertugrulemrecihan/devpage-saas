@@ -61,7 +61,6 @@ export const getUserByIdWithUserPage = async (id: string) => {
                 url: true,
                 image: true,
                 categoryId: true,
-                statusIsVisible: true,
                 status: true,
                 statusId: true,
               },

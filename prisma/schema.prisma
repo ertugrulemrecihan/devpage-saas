@@ -40,15 +40,15 @@ model UserPage {
 }
 
 model Project {
-  id              String   @id @default(cuid())
-  userPage        UserPage @relation(fields: [userPageId], references: [id], onDelete: Cascade)
-  userPageId      String
-  image           String?
-  name            String
-  description     String?  @db.Text
-  url             String?
-  statusIsVisible Boolean  @default(false)
-  index           Int      @default(0)
+  id          String   @id @default(cuid())
+  userPage    UserPage @relation(fields: [userPageId], references: [id], onDelete: Cascade)
+  userPageId  String
+  image       String?
+  name        String
+  description String?  @db.Text
+  url         String?
+  index       Int      @default(0)
+  revenue     Float?   @default(0)
 
   category   Category? @relation(fields: [categoryId], references: [id])
   categoryId String?

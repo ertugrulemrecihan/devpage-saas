@@ -7,7 +7,6 @@ interface ProjectState {
   description?: string | null;
   image?: string | null;
   url?: string | null;
-  statusIsVisible?: boolean;
 }
 
 const initialState = [] as ProjectState[] | null;

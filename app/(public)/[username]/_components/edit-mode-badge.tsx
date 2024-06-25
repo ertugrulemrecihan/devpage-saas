@@ -9,9 +9,9 @@ const EditModeBadge = () => {
       {isPageEditing && (
         <motion.div
           initial={{ top: -20, opacity: 0 }}
-          animate={{ top: [-20, -20, 40, 40, 0], opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.4 }}
+          animate={{ top: 0, opacity: 1 }}
+          exit={{ opacity: 0, top: -20 }}
+          transition={{ duration: 0.3 }}
           className="absolute left-0 z-50 w-full flex justify-center"
         >
           <div className="bg-[#A855F7] rounded-b-lg flex items-center justify-center px-4 py-[3px] shadow-edit-mode-badge">

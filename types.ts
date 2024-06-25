@@ -22,7 +22,6 @@ const userWithUserPage = Prisma.validator<Prisma.UserArgs>()({
             url: true,
             image: true,
             categoryId: true,
-            statusIsVisible: true,
             status: true,
             statusId: true,
           },
@@ -102,4 +101,16 @@ export type ProfileBackgroundColorsType = {
 
 export type UsernameSession = {
   username?: string;
+};
+
+export type ProjectEditChangesProps = {
+  id: string;
+  image?: string;
+  name?: string;
+  description?: string;
+  categoryId?: string;
+  statusId?: string;
+  url?: string;
+  index?: number;
+  revenue?: number;
 };
