@@ -204,6 +204,7 @@ const UserInformation = () => {
                   onChange={(e) => {
                     handleChange('contactEmail', e);
                   }}
+                  variant="ghost"
                 />
               </motion.div>
             )}
