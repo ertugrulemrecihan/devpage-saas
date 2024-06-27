@@ -35,6 +35,14 @@ const Projects = () => {
   const [projectStatus, setProjectStatus] = useState<
     ProjectStatus[] | undefined
   >();
+  const [projectCardIsEditing, setProjectCardIsEditing] = useState<{
+    id: string;
+    isEditing: boolean;
+  }>({
+    id: '',
+    isEditing: false,
+  });
+  const [changes, setChanges] = useState<{ [key: string]: string }>();
 
   const [isPending, startFetchProjectsTransition] = useTransition();
   const [isProjectUpdatePending, startUpdateProjectTransition] =
@@ -212,7 +220,7 @@ const Projects = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3 }}
-        className="w-full h-full flex justify-start gap-5 flex-wrap"
+        className="w-full h-full flex md:justify-start justify-center gap-5 md:flex-nowrap flex-wrap"
       >
         <AnimatePresence>
           {isAddingProject && isPageEditing && isOwner && (
@@ -258,9 +266,37 @@ const Projects = () => {
             }}
             isValid={projectEditIsValid}
             onSubmit={onSubmitProjectChanges}
+            setProjectCardIsEditing={setProjectCardIsEditing}
+            changes={changes}
           >
-            <ProjectCard.Image projectsStatus={projectStatus} />
-            <ProjectCard.Details categories={categories} />
+            <ProjectCard.Image
+              projectsStatus={projectStatus}
+              isPageEditing={isPageEditing}
+              projectCardIsEditing={projectCardIsEditing}
+              setProjects={
+                setProjects as React.Dispatch<
+                  React.SetStateAction<Project[] | null>
+                >
+              }
+            />
+            <ProjectCard.Details
+              categories={categories}
+              projectCardIsEditing={projectCardIsEditing}
+              onChange={(key, value) => {
+                setProjectEditChanges({
+                  ...projectEditChanges!,
+                  id: project.id,
+                  [key]: value,
+                });
+                setProjectEditIsValid(false);
+              }}
+              setChanges={
+                setChanges as React.Dispatch<
+                  React.SetStateAction<{ [key: string]: string }>
+                >
+              }
+              isValid={projectEditIsValid}
+            />
           </ProjectCard>
         ))}
       </motion.div>

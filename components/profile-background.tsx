@@ -16,8 +16,9 @@ export const ProfileBackground = ({
 
   useLayoutEffect(() => {
     const windowWidth = window.innerWidth;
+    console.log(windowWidth);
 
-    const triangleWidth = 508;
+    const triangleWidth = windowWidth > 1024 ? 508 : 100;
 
     const maxTriangleQuantity = Math.floor(windowWidth / triangleWidth) * 16;
 

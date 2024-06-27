@@ -80,10 +80,10 @@ export const InlineEdit = ({
         autoFocus
         onChange={handleOnChange}
         className={cn(
-          'shadow-none p-0 px-0 focus-within:ring-0 focus-visible:ring-0 border-none text-base rounded-none',
+          'shadow-none p-0 px-0 focus-within:ring-0 focus-visible:ring-0 outline-none border-none text-base rounded-none',
           inputStyle
         )}
-        style={{ width: inputWidth }}
+        style={{ width: inputWidth, height: 'auto' }}
         onFocus={(e) => {
           setInputWidth(calculateInputWidth(e.target.value));
         }}

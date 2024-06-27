@@ -235,19 +235,16 @@ export const ProjectEditSchema = z.object({
     )
     .or(z.literal('')),
   name: z
-    .optional(
-      z
-        .string({
-          message: 'Invalid name',
-        })
-        .min(1, {
-          message: 'Name is required',
-        })
-        .max(75, {
-          message: 'Maximum 75 characters allowed',
-        })
-    )
-    .or(z.literal('')),
+    .string({
+      message: 'Invalid name',
+    })
+    .min(1, {
+      message: 'Name is required',
+    })
+    .max(75, {
+      message: 'Maximum 75 characters allowed',
+    })
+    .optional(),
   description: z
     .optional(
       z

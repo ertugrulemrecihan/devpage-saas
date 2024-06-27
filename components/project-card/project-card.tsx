@@ -29,9 +29,13 @@ interface ProjectCardProps {
   categories?: Category[];
   projectsStatus?: ProjectsStatus[];
   isValid: boolean;
+  changes?: { [key: string]: string };
   onChange: (key: string, value: any) => void;
   onClose?: () => void;
   onSubmit?: () => void;
+  setProjectCardIsEditing: React.Dispatch<
+    React.SetStateAction<{ id: string; isEditing: boolean }>
+  >;
 }
 
 interface IsInputEditOpenProps {
@@ -51,9 +55,11 @@ const ProjectCard = ({
   categories,
   projectsStatus,
   isValid,
+  changes,
   onChange,
   onClose,
   onSubmit,
+  setProjectCardIsEditing,
 }: ProjectCardProps) => {
   const projectCardRef = useRef<HTMLDivElement>(null);
 
@@ -61,7 +67,6 @@ const ProjectCard = ({
   const [isEditing, setIsEditing] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
   const [isHaveChanges, setIsHaveChanges] = useState<boolean>(false);
-  const [editModeIsValid, setEditModeIsValid] = useState<boolean>(isValid);
   const [onSubmitChanges, setOnSubmitChanges] = useState<boolean>(isValid);
   const [value, setValue] = useState<ValueProps | null>(null);
   const [isInputEditOpen, setIsInputEditOpen] = useState<IsInputEditOpenProps>({
@@ -82,6 +87,10 @@ const ProjectCard = ({
           } else {
             setIsDialogOpen(false);
             setIsEditing(false);
+            setProjectCardIsEditing({
+              id: '',
+              isEditing: false,
+            });
             setIsHaveChanges(false);
             setOnSubmitChanges(false);
             setIsInputEditOpen({
@@ -106,8 +115,10 @@ const ProjectCard = ({
   }, [project]);
 
   useEffect(() => {
-    setEditModeIsValid(isValid);
-  }, [isValid]);
+    if (changes) {
+      setIsHaveChanges(true);
+    }
+  }, [changes]);
 
   const handleChange = (key: string, value: string) => {
     setIsHaveChanges(true);
@@ -121,6 +132,10 @@ const ProjectCard = ({
   const handleDiscardChanges = () => {
     setIsDialogOpen(false);
     setIsEditing(false);
+    setProjectCardIsEditing({
+      id: '',
+      isEditing: false,
+    });
     setIsHaveChanges(false);
     setOnSubmitChanges(false);
     setIsInputEditOpen({
@@ -135,6 +150,10 @@ const ProjectCard = ({
     if (isValid && onSubmitChanges) {
       setIsDialogOpen(false);
       setIsEditing(false);
+      setProjectCardIsEditing({
+        id: '',
+        isEditing: false,
+      });
       setIsHaveChanges(false);
       setOnSubmitChanges(false);
       setIsInputEditOpen({
@@ -204,9 +223,9 @@ const ProjectCard = ({
         <div
           className={cn(
             'max-w-[30.563rem] group w-full flex items-center p-5 rounded-lg bg-white border border-[#E5E5E5] shadow-project-card relative overflow-hidden',
-            variant === 'horizontal' && 'gap-x-5 h-[9.125rem]',
-            variant === 'big_image' && 'gap-x-5 h-[10.5rem]',
-            variant === 'vertical' && 'flex-col gap-y-5 h-[12.444rem]',
+            variant === 'horizontal' && 'gap-x-5 md:h-[9.125rem] min-h-[9.125rem]',
+            variant === 'big_image' && 'gap-x-5 md:h-[10.5rem] min-h-[10.5rem]',
+            variant === 'vertical' && 'flex-col gap-y-5 md:h-[12.444rem] min-h-[12.444rem]',
             isHovered && isPageEditing && 'cursor-pointer'
           )}
           onMouseEnter={() => !isEditing && setIsHovered(true)}
@@ -255,6 +274,10 @@ const ProjectCard = ({
                     className="flex items-center gap-x-2 w-full rounded-lg"
                     onClick={() => {
                       setIsEditing(true);
+                      setProjectCardIsEditing({
+                        id: project.id,
+                        isEditing: true,
+                      });
                       setIsHovered(false);
                     }}
                   >

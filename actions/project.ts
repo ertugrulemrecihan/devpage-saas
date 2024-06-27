@@ -10,6 +10,8 @@ import {
 import { db } from '@/lib/db';
 import { currentUser } from '@/lib/auth';
 import { getUserPageByUserId } from '@/data/user-page';
+import { ClientUploadedFileData } from 'uploadthing/types';
+import { UTApi } from 'uploadthing/server';
 
 export const fetchProjects = async (username: string) => {
   const dbUser = await getUserByUsername(username);
@@ -145,4 +147,57 @@ export const updateProject = async (
   }
 
   return { project: updatedProject, success: 'Saved! ✅' };
+};
+
+export const updateProjectImage = async (
+  res: ClientUploadedFileData<{
+    uploadedBy: string | undefined;
+  }>[],
+  project_id: string
+) => {
+  const user = await currentUser();
+
+  if (!user) {
+    return { error: 'Unauthorized!' };
+  }
+
+  const dbUser = await getUserById(user.id as string);
+
+  if (!dbUser) {
+    return { error: 'Unauthorized!' };
+  }
+
+  const utapi = new UTApi();
+
+  const currentProject = await db.project.findUnique({
+    where: {
+      id: project_id,
+    },
+    select: {
+      image: true,
+    },
+  });
+
+  if (!currentProject) {
+    return { error: 'Project not found!' };
+  }
+
+  if (currentProject.image) {
+    const projectImage = currentProject.image.split('/').pop();
+
+    if (projectImage) {
+      await utapi.deleteFiles(projectImage);
+    }
+  }
+
+  const updatedProject = await db.project.update({
+    where: {
+      id: project_id,
+    },
+    data: {
+      image: res[0].url,
+    },
+  });
+
+  return { success: 'Saved! ✅', project: updatedProject };
 };
