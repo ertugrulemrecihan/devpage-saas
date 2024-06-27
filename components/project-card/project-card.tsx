@@ -22,7 +22,7 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 
 interface ProjectCardProps {
-  project: Project;
+  project?: Project;
   variant?: 'horizontal' | 'big_image' | 'vertical';
   isPageEditing?: boolean;
   children: React.ReactNode;
@@ -30,10 +30,11 @@ interface ProjectCardProps {
   projectsStatus?: ProjectsStatus[];
   isValid: boolean;
   changes?: { [key: string]: string };
+  isAddProjectCard?: boolean;
   onChange: (key: string, value: any) => void;
   onClose?: () => void;
   onSubmit?: () => void;
-  setProjectCardIsEditing: React.Dispatch<
+  setProjectCardIsEditing?: React.Dispatch<
     React.SetStateAction<{ id: string; isEditing: boolean }>
   >;
 }
@@ -56,6 +57,7 @@ const ProjectCard = ({
   projectsStatus,
   isValid,
   changes,
+  isAddProjectCard,
   onChange,
   onClose,
   onSubmit,
@@ -73,7 +75,20 @@ const ProjectCard = ({
     category: false,
     projectStatus: false,
   });
-  const [currentProject, setCurrentProject] = useState<Project>(project);
+  const [currentProject, setCurrentProject] = useState<Project>(
+    project ||
+      ({
+        id: '',
+        name: '',
+        description: '',
+        revenue: 0,
+        image: '',
+        categoryId: '',
+        statusId: '',
+        url: '',
+        index: 0,
+      } as Project)
+  );
 
   useEffect(() => {
     if (isEditing) {
@@ -87,10 +102,11 @@ const ProjectCard = ({
           } else {
             setIsDialogOpen(false);
             setIsEditing(false);
-            setProjectCardIsEditing({
-              id: '',
-              isEditing: false,
-            });
+            setProjectCardIsEditing &&
+              setProjectCardIsEditing({
+                id: '',
+                isEditing: false,
+              });
             setIsHaveChanges(false);
             setOnSubmitChanges(false);
             setIsInputEditOpen({
@@ -108,10 +124,13 @@ const ProjectCard = ({
         document.removeEventListener('mousedown', handleClickOutside);
       };
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEditing, isHaveChanges]);
 
   useEffect(() => {
-    setCurrentProject(project);
+    if (project) {
+      setCurrentProject(project);
+    }
   }, [project]);
 
   useEffect(() => {
@@ -132,10 +151,11 @@ const ProjectCard = ({
   const handleDiscardChanges = () => {
     setIsDialogOpen(false);
     setIsEditing(false);
-    setProjectCardIsEditing({
-      id: '',
-      isEditing: false,
-    });
+    setProjectCardIsEditing &&
+      setProjectCardIsEditing({
+        id: '',
+        isEditing: false,
+      });
     setIsHaveChanges(false);
     setOnSubmitChanges(false);
     setIsInputEditOpen({
@@ -150,10 +170,11 @@ const ProjectCard = ({
     if (isValid && onSubmitChanges) {
       setIsDialogOpen(false);
       setIsEditing(false);
-      setProjectCardIsEditing({
-        id: '',
-        isEditing: false,
-      });
+      setProjectCardIsEditing &&
+        setProjectCardIsEditing({
+          id: '',
+          isEditing: false,
+        });
       setIsHaveChanges(false);
       setOnSubmitChanges(false);
       setIsInputEditOpen({
@@ -162,6 +183,7 @@ const ProjectCard = ({
       });
       setValue(null);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [onSubmitChanges, isValid]);
 
   const handleOnSubmit = () => {
@@ -217,16 +239,25 @@ const ProjectCard = ({
         ref={projectCardRef}
         className={cn(
           'max-w-[30.563rem] w-full relative transition-all duration-300',
-          isEditing && isPageEditing && 'p-1 bg-[#FAFAFA] rounded-t-[10px]'
+          ((isEditing && isPageEditing) || isAddProjectCard) &&
+            'p-1 bg-[#FAFAFA] rounded-t-[10px]'
         )}
+        onClick={() => {
+          if (!isEditing && !isPageEditing) {
+            if (project?.url) {
+              window.open(project?.url, '_blank');
+            }
+          }
+        }}
       >
         <div
           className={cn(
-            'max-w-[30.563rem] group w-full flex items-center p-5 rounded-lg bg-white border border-[#E5E5E5] shadow-project-card relative overflow-hidden',
-            variant === 'horizontal' && 'gap-x-5 md:h-[9.125rem] min-h-[9.125rem]',
+            'max-w-[30.563rem] group w-full flex items-center p-5 rounded-lg bg-white border border-[#E5E5E5] shadow-project-card relative overflow-hidden cursor-pointer',
+            variant === 'horizontal' &&
+              'gap-x-5 md:h-[9.125rem] min-h-[9.125rem]',
             variant === 'big_image' && 'gap-x-5 md:h-[10.5rem] min-h-[10.5rem]',
-            variant === 'vertical' && 'flex-col gap-y-5 md:h-[12.444rem] min-h-[12.444rem]',
-            isHovered && isPageEditing && 'cursor-pointer'
+            variant === 'vertical' &&
+              'flex-col gap-y-5 md:h-[12.444rem] min-h-[12.444rem]'
           )}
           onMouseEnter={() => !isEditing && setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
@@ -236,7 +267,7 @@ const ProjectCard = ({
             <ProjectStatus projectsStatus={projectsStatus} />
           )}
           <AnimatePresence>
-            {isHovered && isPageEditing && (
+            {isHovered && isPageEditing && !isAddProjectCard && (
               <motion.div
                 initial={{ opacity: 0, top: -10 }}
                 animate={{ opacity: 1, top: 0 }}
@@ -260,7 +291,7 @@ const ProjectCard = ({
             )}
           </AnimatePresence>
           <AnimatePresence>
-            {isHovered && isPageEditing && (
+            {isHovered && isPageEditing && !isAddProjectCard && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -274,10 +305,11 @@ const ProjectCard = ({
                     className="flex items-center gap-x-2 w-full rounded-lg"
                     onClick={() => {
                       setIsEditing(true);
-                      setProjectCardIsEditing({
-                        id: project.id,
-                        isEditing: true,
-                      });
+                      setProjectCardIsEditing &&
+                        setProjectCardIsEditing({
+                          id: project?.id || '',
+                          isEditing: true,
+                        });
                       setIsHovered(false);
                     }}
                   >
@@ -300,19 +332,24 @@ const ProjectCard = ({
           </AnimatePresence>
         </div>
         <AnimatePresence>
-          {isEditing && isPageEditing && (
+          {((isEditing && isPageEditing) || isAddProjectCard) && (
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.3 }}
-              className="absolute top-full z-40 left-0 w-full flex flex-col rounded-b-[10px] bg-[#FAFAFA] px-2 pb-2 gap-y-3 shadow-project-edit-mode"
+              transition={{ duration: 0.3, delay: isAddProjectCard ? 0.3 : 0 }}
+              className={cn(
+                'absolute top-full z-40 left-0 w-full flex flex-col rounded-b-[10px] bg-[#FAFAFA] px-2 pb-2 gap-y-3 shadow-project-edit-mode',
+                {
+                  'pt-2': isAddProjectCard,
+                }
+              )}
             >
               <div className="w-full flex items-center gap-x-2 relative">
                 <select
                   className="w-full h-9 outline-none ring-[1px] ring-input rounded-md px-3 py-2 border-r-[12px] border-white cursor-pointer"
                   onChange={(e) => handleChange('category', e.target.value)}
-                  value={value?.category || project.categoryId || ''}
+                  value={value?.category || project?.categoryId || ''}
                 >
                   <option value="" selected disabled hidden>
                     Category
@@ -328,7 +365,7 @@ const ProjectCard = ({
                   onChange={(e) =>
                     handleChange('project_status', e.target.value)
                   }
-                  value={value?.project_status || project.statusId || ''}
+                  value={value?.project_status || project?.statusId || ''}
                 >
                   <option value="" selected disabled hidden>
                     Project Status
@@ -405,7 +442,7 @@ const ProjectCard = ({
                             onChange={(e) =>
                               handleChange('url', e.target.value)
                             }
-                            defaultValue={value?.url || project.url || ''}
+                            defaultValue={value?.url || project?.url || ''}
                           />
                         </motion.div>
                       </div>
@@ -447,7 +484,9 @@ const ProjectCard = ({
                           onChange={(e) =>
                             handleChange('revenue', e.target.value)
                           }
-                          defaultValue={value?.revenue || project.revenue || ''}
+                          defaultValue={
+                            value?.revenue || project?.revenue || ''
+                          }
                         />
                       </motion.div>
                     </motion.div>
@@ -468,7 +507,7 @@ const ProjectCard = ({
                       className="bg-[#272727] w-full h-10 hover:bg-[#303030] border border-[#535353] ring-[1px] ring-[#272727]"
                     >
                       <span className="text-base font-medium text-white">
-                        Save Changes
+                        {isAddProjectCard ? 'Add Project' : 'Save Changes'}
                       </span>
                     </Button>
                   </motion.div>

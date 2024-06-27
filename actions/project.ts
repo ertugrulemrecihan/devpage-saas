@@ -1,7 +1,7 @@
 'use server';
 
 import * as z from 'zod';
-import { ProjectEditSchema, ProjectSchema } from '@/schemas';
+import { CreateProjectSchema, ProjectEditSchema } from '@/schemas';
 import {
   getUserById,
   getUserByIdWithUserPage,
@@ -12,6 +12,7 @@ import { currentUser } from '@/lib/auth';
 import { getUserPageByUserId } from '@/data/user-page';
 import { ClientUploadedFileData } from 'uploadthing/types';
 import { UTApi } from 'uploadthing/server';
+import { connect } from 'http2';
 
 export const fetchProjects = async (username: string) => {
   const dbUser = await getUserByUsername(username);
@@ -39,7 +40,9 @@ export const fetchProjects = async (username: string) => {
   return { success: true, projects: projects?.projects };
 };
 
-export const createProject = async (values: z.infer<typeof ProjectSchema>) => {
+export const createProject = async (
+  values: z.infer<typeof CreateProjectSchema>
+) => {
   const user = await currentUser();
 
   if (!user) {
@@ -52,7 +55,10 @@ export const createProject = async (values: z.infer<typeof ProjectSchema>) => {
     return { error: 'Unauthorized!' };
   }
 
-  const validatedFields = ProjectSchema.safeParse(values);
+  const validatedFields = CreateProjectSchema.safeParse(values);
+
+  const categoryId = validatedFields.data?.category;
+  const projectStatusId = validatedFields.data?.project_status;
 
   if (!validatedFields.success) {
     return { error: 'Invalid fields!' };
@@ -64,33 +70,24 @@ export const createProject = async (values: z.infer<typeof ProjectSchema>) => {
     return { error: 'Failed to create project!' };
   }
 
-  const createdProject = await db.userPage
-    .update({
-      where: {
-        id: userPage?.id,
-      },
-      data: {
-        projects: {
-          create: {
-            name: validatedFields.data.name,
-          },
-        },
-      },
-    })
-    .projects({
-      select: {
-        id: true,
-        image: true,
-        description: true,
-        name: true,
-      },
-    });
+  const createdProject = await db.project.create({
+    data: {
+      name: validatedFields.data.name,
+      description: validatedFields.data.description,
+      image: '',
+      url: validatedFields.data.url,
+      categoryId,
+      statusId: projectStatusId,
+      revenue: parseFloat(validatedFields.data.revenue as string),
+      userPageId: userPage.id,
+    },
+  });
 
   if (!createdProject) {
     return { error: 'Failed to create project!' };
   }
 
-  return { project: createdProject };
+  return { project: createdProject, success: 'Saved! ✅' };
 };
 
 export const updateProject = async (

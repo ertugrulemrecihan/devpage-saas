@@ -1,20 +1,26 @@
-import { fetchProjects, updateProject } from '@/actions/project';
+import { CreateProjectSchema, ProjectEditSchema } from '@/schemas';
+import { useAppSelector } from '@/lib/rtk-hooks';
+import { ProjectEditChangesProps } from '@/types';
+import { fetchCategories } from '@/actions/category';
+import { notFound, useParams } from 'next/navigation';
+import { useCurrentUser } from '@/hooks/use-current-user';
+import { useEffect, useRef, useState, useTransition } from 'react';
+import { fetchProjectStatus } from '@/actions/project-status';
+import { Category, Project, ProjectStatus } from '@prisma/client';
+import {
+  fetchProjects,
+  updateProject,
+  createProject as createProjectServer,
+} from '@/actions/project';
+
+import { IconPlus } from '@tabler/icons-react';
+import { Button } from '@/components/ui/button';
+import { toast } from '@/components/ui/use-toast';
+import { AnimatePresence, motion } from 'framer-motion';
 import { ProjectCard } from '@/components/project-card';
 import ProjectCardSkeleton from '@/components/project-card/project-card-skeleton';
-import { Category, Project, ProjectStatus } from '@prisma/client';
-import { notFound, useParams } from 'next/navigation';
-import { useEffect, useState, useTransition } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
+
 import RefreshIcon from '@/public/assets/icons/refresh';
-import { IconPlus } from '@tabler/icons-react';
-import { useAppSelector } from '@/lib/rtk-hooks';
-import { fetchCategories } from '@/actions/category';
-import { fetchProjectStatus } from '@/actions/project-status';
-import { ProjectEditChangesProps } from '@/types';
-import { useCurrentUser } from '@/hooks/use-current-user';
-import { ProjectEditSchema } from '@/schemas';
-import { toast } from '@/components/ui/use-toast';
 
 const Projects = () => {
   const isPageEditing = useAppSelector((state) => state.profile.isEditMode);
@@ -25,11 +31,19 @@ const Projects = () => {
   const params = useParams();
   const username = params.username;
 
+  const addProjectCardRef = useRef<HTMLDivElement>(null);
+
   const [projects, setProjects] = useState<Project[] | null>();
   const [categories, setCategories] = useState<Category[] | undefined>();
   const [projectEditIsValid, setProjectEditIsValid] = useState<boolean>(false);
   const [isOwner, setIsOwner] = useState<boolean>(false);
-  const [isAddingProject, setIsAddingProject] = useState<boolean>(false);
+  const [isAddingProject, setIsAddingProject] = useState<
+    | boolean
+    | {
+        id: string;
+        isEditing: boolean;
+      }
+  >(false);
   const [projectEditChanges, setProjectEditChanges] =
     useState<ProjectEditChangesProps | null>();
   const [projectStatus, setProjectStatus] = useState<
@@ -43,9 +57,16 @@ const Projects = () => {
     isEditing: false,
   });
   const [changes, setChanges] = useState<{ [key: string]: string }>();
+  const [createProject, setCreateProject] = useState<{
+    [key: string]: string;
+  } | null>(null);
+  const [createProjectIsValid, setCreateProjectIsValid] =
+    useState<boolean>(false);
 
   const [isPending, startFetchProjectsTransition] = useTransition();
   const [isProjectUpdatePending, startUpdateProjectTransition] =
+    useTransition();
+  const [isCreateProjectPending, startCreateProjectTransition] =
     useTransition();
 
   useEffect(() => {
@@ -56,6 +77,27 @@ const Projects = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser, profileUser?.id]);
+
+  useEffect(() => {
+    if (isAddingProject) {
+      const handleClickOutside = (e: MouseEvent) => {
+        if (
+          addProjectCardRef.current &&
+          !addProjectCardRef.current.contains(e.target as Node)
+        ) {
+          setIsAddingProject(false);
+          setCreateProject(null);
+          setCreateProjectIsValid(false);
+        }
+      };
+
+      document.addEventListener('mousedown', handleClickOutside);
+
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [isAddingProject]);
 
   const getProjects = async () => {
     startFetchProjectsTransition(async () => {
@@ -129,12 +171,6 @@ const Projects = () => {
 
             setProjectEditChanges(null);
 
-            let revenue = undefined;
-
-            if (validatedValues.data.revenue) {
-              revenue = parseFloat(validatedValues.data.revenue as string);
-            }
-
             setProjects((prevProjects) => {
               if (!prevProjects) return;
 
@@ -147,6 +183,55 @@ const Projects = () => {
 
                 return project;
               });
+            });
+          }
+        });
+      });
+    }
+
+    if (validatedValues.error) {
+      toast({
+        title: 'Error!',
+        description: validatedValues.error.issues[0].message,
+        variant: 'error',
+        duration: 2000,
+      });
+    }
+  };
+
+  const onSubmitCreateProject = async () => {
+    if (!createProject) return;
+
+    const validatedValues = CreateProjectSchema.safeParse(createProject);
+
+    if (validatedValues.success) {
+      setCreateProjectIsValid(true);
+      setCreateProject(null);
+      setIsAddingProject(false);
+
+      startCreateProjectTransition(async () => {
+        createProjectServer(validatedValues.data).then((data) => {
+          if (data.error) {
+            toast({
+              title: 'Error!',
+              description: data.error,
+              variant: 'error',
+              duration: 2000,
+            });
+          }
+
+          if (data.success) {
+            toast({
+              title: 'Success!',
+              description: data.success,
+              variant: 'success',
+              duration: 2000,
+            });
+
+            setProjects((prevProjects) => {
+              if (!prevProjects) return;
+
+              return [...prevProjects, data.project];
             });
           }
         });
@@ -220,27 +305,56 @@ const Projects = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3 }}
-        className="w-full h-full flex md:justify-start justify-center gap-5 md:flex-nowrap flex-wrap"
+        className="w-full h-full grid grid-cols-2 md:justify-start justify-center gap-5 transition-all duration-300 pb-6"
       >
         <AnimatePresence>
           {isAddingProject && isPageEditing && isOwner && (
             <motion.div
-              initial={{ opacity: 0, width: 0 }}
-              animate={{ opacity: 1, width: 'auto' }}
-              exit={{ opacity: 0, width: 0 }}
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.3 }}
+              ref={addProjectCardRef}
             >
-              <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: [20, 0, 15, 0, 5, 0] }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{
-                  duration: 0.6,
-                  delay: 0.5,
+              <ProjectCard
+                variant="horizontal"
+                isPageEditing={isPageEditing}
+                categories={categories}
+                projectsStatus={projectStatus}
+                onChange={(key, value) => {
+                  setCreateProject({
+                    ...createProject,
+                    [key]: value,
+                  });
                 }}
+                onClose={() => {
+                  setCreateProject(null);
+                  setCreateProjectIsValid(false);
+                }}
+                isValid={createProjectIsValid}
+                onSubmit={onSubmitCreateProject}
+                isAddProjectCard={true}
+                changes={createProject as { [key: string]: string }}
               >
-                haburası proje kartı için ayrılmış bir alan
-              </motion.div>
+                <ProjectCard.Image
+                  projectsStatus={projectStatus}
+                  isPageEditing={isPageEditing}
+                  projectCardIsEditing={{ id: '', isEditing: true }}
+                  isAddProjectCard={true}
+                />
+
+                <ProjectCard.Details
+                  categories={categories}
+                  projectCardIsEditing={{ id: '', isEditing: true }}
+                  onChange={(key, value) => {
+                    setCreateProject({
+                      ...createProject,
+                      [key]: value,
+                    });
+                  }}
+                  isValid={createProjectIsValid}
+                />
+              </ProjectCard>
             </motion.div>
           )}
         </AnimatePresence>

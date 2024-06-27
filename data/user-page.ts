@@ -6,6 +6,9 @@ export const getUserPageByUserId = async (id: string) => {
       where: {
         userId: id,
       },
+      include: {
+        projects: true,
+      },
     });
 
     return userPage;

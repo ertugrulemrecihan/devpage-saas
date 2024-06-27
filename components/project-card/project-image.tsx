@@ -18,7 +18,8 @@ interface ProjectImageProps {
     id: string;
     isEditing: boolean;
   };
-  setProjects: React.Dispatch<React.SetStateAction<Project[] | null>>;
+  setProjects?: React.Dispatch<React.SetStateAction<Project[] | null>>;
+  isAddProjectCard?: boolean;
 }
 
 const ProjectImage = ({
@@ -26,6 +27,7 @@ const ProjectImage = ({
   isPageEditing,
   projectCardIsEditing,
   setProjects,
+  isAddProjectCard = false,
 }: ProjectImageProps) => {
   const { variant, project } = useProjectCardContext();
 
@@ -48,20 +50,21 @@ const ProjectImage = ({
             variant: 'success',
           });
 
-          setProjects((prevProjects) => {
-            if (!prevProjects) return prevProjects;
+          setProjects &&
+            setProjects((prevProjects) => {
+              if (!prevProjects) return prevProjects;
 
-            return prevProjects.map((prevProject) => {
-              if (prevProject.id === project.id) {
-                return {
-                  ...prevProject,
-                  image: data?.project?.image,
-                };
-              }
+              return prevProjects.map((prevProject) => {
+                if (prevProject.id === project.id) {
+                  return {
+                    ...prevProject,
+                    image: data?.project?.image,
+                  };
+                }
 
-              return prevProject;
+                return prevProject;
+              });
             });
-          });
         }
 
         if (data.error) {
@@ -105,57 +108,60 @@ const ProjectImage = ({
             </motion.div>
           )}
         </AnimatePresence>
-        {isPageEditing && projectCardIsEditing?.id === project.id && (
-          <div className="w-full h-full flex items-center justify-center bg-[#E5E5E5] relative">
-            <UploadButton
-              config={{
-                mode: 'auto',
-              }}
-              endpoint="imageUploader"
-              onClientUploadComplete={handleChangeProjectPhoto}
-              onUploadProgress={() => {
-                setIsPending(true);
-              }}
-              onUploadError={() => {
-                toast({
-                  duration: 3000,
-                  title: 'Error',
-                  description: "Couldn't upload the image.",
-                  variant: 'error',
-                });
-                setIsPending(false);
-              }}
-              appearance={{
-                allowedContent: 'hidden',
-                button:
-                  isPending || isProjectImageUploading
-                    ? 'hidden'
-                    : 'w-full h-full ut-uploading:cursor-not-allowed ut-uploading:bg-transparent after:bg-transparent focus-within:outline-none focus-within:ring-0 focus-within:ring-offset-0 inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 hover:bg-transparent hover:text-accent-foreground rounded-sm bg-transparent border border-[#E5E5E5]',
-                clearBtn: 'hidden',
-                container: 'w-full h-full',
-              }}
-              content={{
-                button: project?.image ? (
-                  <div className="w-full h-full">
-                    <Image
-                      src={project.image}
-                      alt={project.name}
-                      layout="fill"
-                      className="object-cover"
+        {isPageEditing &&
+          projectCardIsEditing?.id === project.id &&
+          !isAddProjectCard && (
+            <div className="w-full h-full flex items-center justify-center bg-[#E5E5E5] relative">
+              <UploadButton
+                config={{
+                  mode: 'auto',
+                }}
+                endpoint="imageUploader"
+                onClientUploadComplete={handleChangeProjectPhoto}
+                onUploadProgress={() => {
+                  setIsPending(true);
+                }}
+                onUploadError={() => {
+                  toast({
+                    duration: 3000,
+                    title: 'Error',
+                    description: "Couldn't upload the image.",
+                    variant: 'error',
+                  });
+                  setIsPending(false);
+                }}
+                appearance={{
+                  allowedContent: 'hidden',
+                  button:
+                    isPending || isProjectImageUploading
+                      ? 'hidden'
+                      : 'w-full h-full ut-uploading:cursor-not-allowed ut-uploading:bg-transparent after:bg-transparent focus-within:outline-none focus-within:ring-0 focus-within:ring-offset-0 inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 hover:bg-transparent hover:text-accent-foreground rounded-sm bg-transparent border border-[#E5E5E5]',
+                  clearBtn: 'hidden',
+                  container: 'w-full h-full',
+                }}
+                content={{
+                  button: project?.image ? (
+                    <div className="w-full h-full">
+                      <Image
+                        src={project.image}
+                        alt={project.name}
+                        layout="fill"
+                        className="object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <IconPhotoEdit
+                      size={variant === 'big_image' ? 13 : 20}
+                      stroke={1.5}
+                      className="text-[#666666]"
                     />
-                  </div>
-                ) : (
-                  <IconPhotoEdit
-                    size={variant === 'big_image' ? 13 : 20}
-                    stroke={1.5}
-                    className="text-[#666666]"
-                  />
-                ),
-              }}
-            />
-          </div>
-        )}
-        {!project.image && projectCardIsEditing?.id !== project.id && (
+                  ),
+                }}
+              />
+            </div>
+          )}
+        {((!project.image && projectCardIsEditing?.id !== project.id) ||
+          isAddProjectCard) && (
           <div className="w-full h-full flex items-center justify-center bg-[#E5E5E5]">
             <IconPhotoEdit
               size={variant === 'big_image' ? 13 : 20}
