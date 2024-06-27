@@ -382,6 +382,11 @@ const Projects = () => {
             onSubmit={onSubmitProjectChanges}
             setProjectCardIsEditing={setProjectCardIsEditing}
             changes={changes}
+            setProjects={
+              setProjects as React.Dispatch<
+                React.SetStateAction<Project[] | null>
+              >
+            }
           >
             <ProjectCard.Image
               projectsStatus={projectStatus}

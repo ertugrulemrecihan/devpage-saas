@@ -9,7 +9,7 @@ import {
 import ProjectImage from './project-image';
 import ProjectDetails from './project-details';
 import ProjectStatus from './project-status';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useTransition } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import {
@@ -20,6 +20,8 @@ import {
 } from '@tabler/icons-react';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { deleteProject } from '@/actions/project';
+import { toast } from '../ui/use-toast';
 
 interface ProjectCardProps {
   project?: Project;
@@ -37,6 +39,7 @@ interface ProjectCardProps {
   setProjectCardIsEditing?: React.Dispatch<
     React.SetStateAction<{ id: string; isEditing: boolean }>
   >;
+  setProjects?: React.Dispatch<React.SetStateAction<Project[] | null>>;
 }
 
 interface IsInputEditOpenProps {
@@ -62,6 +65,7 @@ const ProjectCard = ({
   onClose,
   onSubmit,
   setProjectCardIsEditing,
+  setProjects,
 }: ProjectCardProps) => {
   const projectCardRef = useRef<HTMLDivElement>(null);
 
@@ -89,6 +93,9 @@ const ProjectCard = ({
         index: 0,
       } as Project)
   );
+
+  const [isDeleteProjectPending, startDeleteProjectTransition] =
+    useTransition();
 
   useEffect(() => {
     if (isEditing) {
@@ -191,6 +198,54 @@ const ProjectCard = ({
     setOnSubmitChanges(true);
   };
 
+  const handleDeleteProject = () => {
+    startDeleteProjectTransition(async () => {
+      setIsDialogOpen(false);
+      setIsEditing(false);
+      setProjectCardIsEditing &&
+        setProjectCardIsEditing({
+          id: '',
+          isEditing: false,
+        });
+      setIsHaveChanges(false);
+      setOnSubmitChanges(false);
+      setIsInputEditOpen({
+        category: false,
+        projectStatus: false,
+      });
+      setValue(null);
+      deleteProject(currentProject.id).then((data) => {
+        if (data.error) {
+          toast({
+            title: 'Error!',
+            description: data.error,
+            variant: 'error',
+            duration: 2000,
+          });
+        }
+
+        if (data.success) {
+          toast({
+            title: 'Success!',
+            description: data.success,
+            variant: 'success',
+            duration: 2000,
+          });
+
+          setProjects &&
+            setProjects((prevProjects) => {
+              if (prevProjects) {
+                return prevProjects.filter(
+                  (project) => project.id !== currentProject.id
+                );
+              }
+              return prevProjects;
+            });
+        }
+      });
+    });
+  };
+
   return (
     <ProjectCardContext.Provider
       value={{
@@ -250,14 +305,27 @@ const ProjectCard = ({
           }
         }}
       >
+        {isDeleteProjectPending && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="absolute top-0 left-0 flex items-center justify-center w-full h-full bg-white border border-[#E5E5E5] shadow-project-card z-50 pointer-events-none cursor-wait rounded-lg"
+          >
+            <div className="w-7 h-7 border-2 border-t-[#666666] border-solid rounded-full animate-spin"></div>
+          </motion.div>
+        )}
         <div
           className={cn(
-            'max-w-[30.563rem] group w-full flex items-center p-5 rounded-lg bg-white border border-[#E5E5E5] shadow-project-card relative overflow-hidden cursor-pointer',
+            'max-w-[30.563rem] group w-full flex items-center p-5 rounded-lg bg-white border border-[#E5E5E5] shadow-project-card relative overflow-hidden',
             variant === 'horizontal' &&
               'gap-x-5 md:h-[9.125rem] min-h-[9.125rem]',
             variant === 'big_image' && 'gap-x-5 md:h-[10.5rem] min-h-[10.5rem]',
             variant === 'vertical' &&
-              'flex-col gap-y-5 md:h-[12.444rem] min-h-[12.444rem]'
+              'flex-col gap-y-5 md:h-[12.444rem] min-h-[12.444rem]',
+            isPageEditing && isEditing && 'cursor-pointer',
+            project?.url && !isPageEditing && 'cursor-pointer'
           )}
           onMouseEnter={() => !isEditing && setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
@@ -323,6 +391,7 @@ const ProjectCard = ({
                   <Button
                     variant="outline"
                     className="flex items-center gap-x-2 rounded-lg"
+                    onClick={handleDeleteProject}
                   >
                     <span className="text-base text-[#DC2626]">Delete</span>
                   </Button>

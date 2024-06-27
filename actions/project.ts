@@ -198,3 +198,48 @@ export const updateProjectImage = async (
 
   return { success: 'Saved! ✅', project: updatedProject };
 };
+
+export const deleteProject = async (project_id: string) => {
+  const user = await currentUser();
+
+  if (!user) {
+    return { error: 'Unauthorized!' };
+  }
+
+  const dbUser = await getUserById(user.id as string);
+
+  if (!dbUser) {
+    return { error: 'Unauthorized!' };
+  }
+
+  const currentProject = await db.project.findUnique({
+    where: {
+      id: project_id,
+    },
+    select: {
+      image: true,
+    },
+  });
+
+  if (!currentProject) {
+    return { error: 'Project not found!' };
+  }
+
+  const utapi = new UTApi();
+
+  if (currentProject.image) {
+    const projectImage = currentProject.image.split('/').pop();
+
+    if (projectImage) {
+      await utapi.deleteFiles(projectImage);
+    }
+  }
+
+  const deletedProject = await db.project.delete({
+    where: {
+      id: project_id,
+    },
+  });
+
+  return { success: 'Deleted! ❌', project: deletedProject };
+};
