@@ -25,7 +25,7 @@ const ProjectDetails = ({
   onChange,
   setChanges,
 }: ProjectCardProps) => {
-  const { project } = useProjectCardContext();
+  const { project, variant } = useProjectCardContext();
 
   const [values, setValues] = useState<{ name: string; description: string }>({
     name: '',
@@ -53,7 +53,7 @@ const ProjectDetails = ({
 
   return (
     <div className="w-full h-full flex flex-col gap-y-3 overflow-x-hidden">
-      <div className="overflow-x-auto scrollbar-none">
+      <div className="overflow-x-auto scrollbar-none line-clamp-1">
         {projectCardIsEditing?.isEditing &&
         projectCardIsEditing.id === project.id ? (
           <InlineEdit
@@ -86,7 +86,7 @@ const ProjectDetails = ({
             defaultValue={values.description || project.description || ''}
             onChange={(e) => handleChange('description', e.target.value)}
             viewElement={
-              <p className="font-normal text-sm text-[#666]">
+              <p className="font-normal text-sm text-[#666] line-clamp-2 sm:line-clamp-3 break-words">
                 {values.description ||
                   project.description ||
                   'Add Project Description'}
@@ -97,7 +97,7 @@ const ProjectDetails = ({
             maxLength={200}
           />
         ) : (
-          <p className="font-normal text-sm text-[#666]">
+          <p className="font-normal text-sm text-[#666] line-clamp-2 sm:line-clamp-3 break-words">
             {project.description}
           </p>
         )}

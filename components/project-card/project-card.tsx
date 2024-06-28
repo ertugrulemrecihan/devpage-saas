@@ -293,7 +293,7 @@ const ProjectCard = ({
       <div
         ref={projectCardRef}
         className={cn(
-          'max-w-[30.563rem] w-full relative transition-all duration-300',
+          'max-w-[30.563rem] w-full h-full relative transition-all duration-300',
           ((isEditing && isPageEditing) || isAddProjectCard) &&
             'p-1 bg-[#FAFAFA] rounded-t-[10px]'
         )}
@@ -318,12 +318,10 @@ const ProjectCard = ({
         )}
         <div
           className={cn(
-            'max-w-[30.563rem] group w-full flex items-center p-5 rounded-lg bg-white border border-[#E5E5E5] shadow-project-card relative overflow-hidden',
-            variant === 'horizontal' &&
-              'gap-x-5 md:h-[9.125rem] min-h-[9.125rem]',
-            variant === 'big_image' && 'gap-x-5 md:h-[10.5rem] min-h-[10.5rem]',
-            variant === 'vertical' &&
-              'flex-col gap-y-5 md:h-[12.444rem] min-h-[12.444rem]',
+            'max-w-[30.563rem] group w-full flex items-center p-5 rounded-lg bg-white border border-[#E5E5E5] shadow-project-card relative overflow-hidden transition-all duration-300',
+            variant === 'horizontal' && 'gap-x-5 items-start h-full min-h-[9.125rem]',
+            variant === 'big_image' && 'gap-x-5 h-full min-h-[10.5rem]',
+            variant === 'vertical' && 'flex-col gap-y-5 h-full min-h-[12.444rem]',
             isPageEditing && isEditing && 'cursor-pointer',
             project?.url && !isPageEditing && 'cursor-pointer'
           )}

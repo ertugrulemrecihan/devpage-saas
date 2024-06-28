@@ -83,10 +83,7 @@ const ProjectImage = ({
 
   return (
     <div
-      className={cn(
-        'h-full flex justify-between',
-        variant === 'vertical' && 'w-full'
-      )}
+      className={cn('flex justify-between', variant === 'vertical' && 'w-full')}
     >
       <div
         className={cn(

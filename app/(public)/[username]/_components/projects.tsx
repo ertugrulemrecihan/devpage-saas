@@ -1,17 +1,29 @@
-import { CreateProjectSchema, ProjectEditSchema } from '@/schemas';
-import { useAppDispatch, useAppSelector } from '@/lib/rtk-hooks';
+import { cn } from '@/lib/utils';
 import { ProjectEditChangesProps } from '@/types';
+import { useAutoSave } from '@/hooks/use-auto-save';
 import { fetchCategories } from '@/actions/category';
 import { notFound, useParams } from 'next/navigation';
 import { useCurrentUser } from '@/hooks/use-current-user';
-import { useEffect, useRef, useState, useTransition } from 'react';
 import { fetchProjectStatus } from '@/actions/project-status';
-import { Category, Project, ProjectStatus } from '@prisma/client';
+import { useAppDispatch, useAppSelector } from '@/lib/rtk-hooks';
+import { useEffect, useRef, useState, useTransition } from 'react';
+import { CreateProjectSchema, ProjectEditSchema } from '@/schemas';
+import { updateUserPageProjectCardsStyle } from '@/actions/profile';
+import {
+  Category,
+  PROJECT_CARD_STYLE,
+  Project,
+  ProjectStatus,
+} from '@prisma/client';
 import {
   fetchProjects,
   updateProject,
   createProject as createProjectServer,
 } from '@/actions/project';
+import {
+  setEditingMode,
+  setProfileUser,
+} from '@/lib/features/profile/profileSlice';
 
 import { IconPlus, IconWand } from '@tabler/icons-react';
 import { Button } from '@/components/ui/button';
@@ -21,7 +33,6 @@ import { ProjectCard } from '@/components/project-card';
 import ProjectCardSkeleton from '@/components/project-card/project-card-skeleton';
 
 import RefreshIcon from '@/public/assets/icons/refresh';
-import { setEditingMode } from '@/lib/features/profile/profileSlice';
 
 const Projects = () => {
   const isPageEditing = useAppSelector((state) => state.profile.isEditMode);
@@ -31,11 +42,17 @@ const Projects = () => {
 
   const currentUser = useCurrentUser();
 
+  const projectCardStyles = ['horizontal', 'vertical', 'big_image'];
+
   const params = useParams();
   const username = params.username;
 
   const addProjectCardRef = useRef<HTMLDivElement>(null);
 
+  const [cardVariantIndex, setCardVariantIndex] = useState<number>(0);
+  const [cardVariant, setCardVariant] = useState<
+    'horizontal' | 'vertical' | 'big_image'
+  >('horizontal');
   const [projects, setProjects] = useState<Project[] | null>();
   const [categories, setCategories] = useState<Category[] | undefined>();
   const [projectEditIsValid, setProjectEditIsValid] = useState<boolean>(false);
@@ -65,12 +82,27 @@ const Projects = () => {
   } | null>(null);
   const [createProjectIsValid, setCreateProjectIsValid] =
     useState<boolean>(false);
+  const [projectCardStyleChangeTimer, setProjectCardStyleChangeTimer] =
+    useState<number | NodeJS.Timeout>(500);
 
   const [isPending, startFetchProjectsTransition] = useTransition();
   const [isProjectUpdatePending, startUpdateProjectTransition] =
     useTransition();
   const [isCreateProjectPending, startCreateProjectTransition] =
     useTransition();
+
+  useEffect(() => {
+    if (profileUser) {
+      const projectCardStyle =
+        profileUser.userPage?.projectCardsStyle.toLowerCase() as
+          | 'horizontal'
+          | 'vertical'
+          | 'big_image';
+      setCardVariant(projectCardStyle);
+      setCardVariantIndex(projectCardStyles.indexOf(projectCardStyle));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profileUser]);
 
   useEffect(() => {
     if (currentUser && profileUser) {
@@ -101,6 +133,34 @@ const Projects = () => {
       };
     }
   }, [isAddingProject]);
+
+  useEffect(() => {
+    const cardVariant = projectCardStyles[cardVariantIndex] as
+      | 'horizontal'
+      | 'vertical'
+      | 'big_image';
+
+    setCardVariant(cardVariant);
+
+    clearTimeout(projectCardStyleChangeTimer);
+
+    if (
+      cardVariant ===
+      (profileUser?.userPage?.projectCardsStyle.toLowerCase() as
+        | 'horizontal'
+        | 'vertical'
+        | 'big_image')
+    ) {
+      return;
+    } else {
+      const timer = setTimeout(() => {
+        dispatchProjectCardAutoSave({});
+      }, 500);
+      setProjectCardStyleChangeTimer(timer);
+    }
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cardVariantIndex]);
 
   const getProjects = async () => {
     startFetchProjectsTransition(async () => {
@@ -251,6 +311,49 @@ const Projects = () => {
     }
   };
 
+  const updateProjectCardStyle = async () => {
+    if (currentUser && isOwner) {
+      const style = projectCardStyles[cardVariantIndex] as
+        | 'horizontal'
+        | 'vertical'
+        | 'big_image';
+
+      dispatch(
+        setProfileUser({
+          ...profileUser!,
+          userPage: {
+            ...profileUser?.userPage!,
+            projectCardsStyle: style.toUpperCase() as PROJECT_CARD_STYLE,
+          },
+        })
+      );
+
+      await updateUserPageProjectCardsStyle(style).then((response) => {
+        if (response?.error) {
+          return toast({
+            title: 'Error!',
+            description: response.error,
+            variant: 'error',
+            duration: 2000,
+          });
+        }
+
+        if (response?.success) {
+          toast({
+            title: 'Success!',
+            description: response.success,
+            variant: 'success',
+            duration: 2000,
+          });
+        }
+      });
+    }
+  };
+
+  const { dispatchAutoSave: dispatchProjectCardAutoSave } = useAutoSave({
+    onSave: updateProjectCardStyle,
+  });
+
   if (isPending) {
     return (
       <AnimatePresence>
@@ -294,9 +397,18 @@ const Projects = () => {
                 <Button
                   variant="ghost"
                   className="px-2 py-[0.375rem] flex items-center gap-2"
+                  onClick={() => {
+                    setCardVariantIndex((prev) => (prev + 1) % 3);
+                  }}
                 >
                   <span className="text-sm text-[#666] font-normal">Style</span>
-                  <RefreshIcon />
+                  <motion.div
+                    initial={{ rotate: cardVariantIndex * -90 }}
+                    animate={{ rotate: cardVariantIndex * -90 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <RefreshIcon />
+                  </motion.div>
                 </Button>
               </div>
             </motion.div>
@@ -405,7 +517,7 @@ const Projects = () => {
               className="w-full"
             >
               <ProjectCard
-                variant="horizontal"
+                variant={cardVariant}
                 isPageEditing={isPageEditing}
                 categories={categories}
                 projectsStatus={projectStatus}
@@ -452,7 +564,7 @@ const Projects = () => {
           projects?.map((project) => (
             <ProjectCard
               key={project.id}
-              variant="horizontal"
+              variant={cardVariant}
               project={project}
               isPageEditing={isPageEditing}
               categories={categories}
@@ -508,6 +620,32 @@ const Projects = () => {
               />
             </ProjectCard>
           ))}
+
+        <AnimatePresence>
+          {isCreateProjectPending &&
+            !isAddingProject &&
+            isPageEditing &&
+            isOwner && (
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+                ref={addProjectCardRef}
+                className={cn(
+                  'w-full bg-white border border-[#E5E5E5] shadow-project-card rounded-lg flex items-center justify-center',
+                  cardVariant === 'horizontal' &&
+                    'md:h-[9.125rem] min-h-[9.125rem]',
+                  cardVariant === 'big_image' &&
+                    'md:h-[10.5rem] min-h-[10.5rem]',
+                  cardVariant === 'vertical' &&
+                    'md:h-[12.444rem] min-h-[12.444rem]'
+                )}
+              >
+                <div className="w-8 h-8 border-2 border-t-[#666666] border-solid rounded-full animate-spin"></div>
+              </motion.div>
+            )}
+        </AnimatePresence>
       </motion.div>
     </div>
   );
