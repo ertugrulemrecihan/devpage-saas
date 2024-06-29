@@ -1,12 +1,12 @@
 'use client';
 
 import * as z from 'zod';
-import { useEffect, useState, useTransition } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useState, useTransition } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import Link from 'next/link';
 
+import Link from 'next/link';
 import { LoginSchema } from '@/schemas';
 import { Input } from '@/components/ui/input';
 import {
@@ -17,24 +17,24 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-
-import CardWrapper from '@/components/auth/card-wrapper';
-import { Button } from '@/components/ui/button';
-import { FormError } from '@/components/form-error';
-import { FormSuccess } from '@/components/form-success';
+import { Social } from './social';
 import { login } from '@/actions/login';
+import { Button } from '@/components/ui/button';
+import { toast } from '@/components/ui/use-toast';
+import CardWrapper from '@/components/auth/card-wrapper';
 
 const LoginForm = () => {
+  const router = useRouter();
+
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl');
   const urlError =
     searchParams.get('error') === 'OAuthAccountNotLinked'
       ? 'Email already in use with diffrent provider'
+      : searchParams.get('error') === 'AccountNotFound'
+      ? 'Account not found'
       : '';
 
-  const [showTwoFactor, setShowTwoFactor] = useState(false);
-  const [error, setError] = useState<string | undefined>();
-  const [success, setSuccess] = useState<string | undefined>();
   const [isPending, startTransition] = useTransition();
 
   const form = useForm<z.infer<typeof LoginSchema>>({
@@ -43,126 +43,137 @@ const LoginForm = () => {
       email: '',
       password: '',
     },
+    mode: 'onChange',
   });
 
-  const onSubmit = (values: z.infer<typeof LoginSchema>) => {
-    setError('');
-    setSuccess('');
+  if (urlError) {
+    toast({
+      title: 'Error!',
+      description: urlError,
+      variant: 'error',
+      duration: 2000,
+    });
+  }
 
+  const onSubmit = (values: z.infer<typeof LoginSchema>) => {
     startTransition(() => {
       login(values, callbackUrl as string)
         .then((data) => {
           if (data?.error) {
             form.reset();
-            setError(data.error);
+            toast({
+              title: 'Error!',
+              description: data.error,
+              variant: 'error',
+              duration: 2000,
+            });
           }
 
           if (data?.success) {
             form.reset();
-            setSuccess(data.success);
-          }
-
-          if (data?.twoFactor) {
-            setShowTwoFactor(true);
+            toast({
+              title: 'Success!',
+              description: data.success,
+              variant: 'success',
+              duration: 2000,
+            });
           }
         })
         .catch(() => {
-          setError('Something went wrong!');
+          form.reset();
+          toast({
+            title: 'Error',
+            description: 'Something went wrong',
+            variant: 'error',
+            duration: 2000,
+          });
         });
     });
   };
 
   return (
     <CardWrapper
-      headerLabel="Welcome Back!"
-      backButtonLabel="Don't have an account?"
-      backButtonHref={
-        callbackUrl
-          ? `/auth/register?callbackUrl=${callbackUrl}`
-          : '/auth/register'
+      headerTitle={
+        <span className="text-5xl text-black font-medium text-center">
+          Log in to your <span className="text-[#6BB696]">linques</span>
+        </span>
       }
-      showSocial
-      callbackUrl={callbackUrl as string}
     >
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <div className="space-y-4">
-            {showTwoFactor && (
+      <div className="w-full flex flex-col items-center justify-center gap-y-4">
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="w-full space-y-4"
+          >
+            <div className="w-full space-y-4">
               <FormField
                 control={form.control}
-                name="code"
+                name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Two Factor Code</FormLabel>
+                    <FormLabel>Email</FormLabel>
                     <FormControl>
                       <Input
                         {...field}
                         disabled={isPending}
-                        placeholder="123456"
-                        type="text"
+                        placeholder="Write your email"
+                        className="p-3 h-11 text-sm font-normal placeholder:text-[#999] border-[#E5E5E5] rounded-lg"
+                        type="email"
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-            )}
-            {!showTwoFactor && (
-              <>
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          disabled={isPending}
-                          placeholder="john.doe@example.com"
-                          type="email"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Password</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          disabled={isPending}
-                          placeholder="********"
-                          type="password"
-                        />
-                      </FormControl>
-                      <Button
-                        variant="link"
-                        size="sm"
-                        asChild
-                        className="px-0 font-normal"
-                      >
-                        <Link href="/auth/reset">Forgot Password?</Link>
-                      </Button>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </>
-            )}
-          </div>
-          <FormError message={error || urlError} />
-          <FormSuccess message={success} />
-          <Button type="submit" disabled={isPending} className="w-full">
-            {showTwoFactor ? 'Confirm' : 'Login'}
-          </Button>
-        </form>
-      </Form>
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Password</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        disabled={isPending}
+                        className="p-3 h-11 text-sm font-normal placeholder:text-[#999] border-[#E5E5E5] rounded-lg"
+                        placeholder="Write your password"
+                        type="password"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <Button
+              variant="link"
+              size="sm"
+              asChild
+              className="px-0 text-sm text-[#999] font-normal"
+            >
+              <Link href="/auth/reset">Reset Password?</Link>
+            </Button>
+            <Button
+              type="submit"
+              disabled={isPending}
+              className="w-full bg-[#272727] py-2 hover:bg-[#2e2e2e] border border-[#535353] ring-[1px] ring-[#272727]"
+            >
+              Login
+            </Button>
+          </form>
+        </Form>
+        <span className="text-[#999] text-sm font-normal text-center">OR</span>
+        <Social callbackUrl={callbackUrl || undefined} />
+        <Button
+          onClick={() => {
+            router.push('/auth/register');
+          }}
+          variant="outline"
+          className="w-full px-2"
+        >
+          Sign Up
+        </Button>
+      </div>
     </CardWrapper>
   );
 };

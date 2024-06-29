@@ -4,8 +4,8 @@ import * as z from 'zod';
 import { useEffect, useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { clearUsernameSession, register } from '@/actions/register';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { register } from '@/actions/register';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '@/lib/rtk-hooks';
 import { clearUsername } from '@/lib/features/register/registerSlice';
 
@@ -21,9 +21,13 @@ import {
 } from '@/components/ui/form';
 import CardWrapper from '@/components/auth/card-wrapper';
 import { Button } from '@/components/ui/button';
-import { FormError } from '@/components/form-error';
-import { FormSuccess } from '@/components/form-success';
+import { Social } from './social';
 import { UsernameInput } from '@/components/auth/username-input';
+import { IconEye, IconEyeOff } from '@tabler/icons-react';
+
+import CheckEmail from '@/public/assets/images/CheckEmail.png';
+import Image from 'next/image';
+import { toast } from '../ui/use-toast';
 
 const RegisterForm = () => {
   const pathname = usePathname();
@@ -33,8 +37,9 @@ const RegisterForm = () => {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl');
 
-  const [error, setError] = useState<string | undefined>('');
   const [success, setSuccess] = useState<string | undefined>('');
+  const [passwordIsHide, setPasswordIsHide] = useState<boolean>(true);
+
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
@@ -51,6 +56,7 @@ const RegisterForm = () => {
       name: '',
       username: registerUsername as string | '',
     },
+    mode: 'onChange',
   });
 
   const onSubmit = (values: z.infer<typeof RegisterSchema>) => {
@@ -61,97 +67,161 @@ const RegisterForm = () => {
         if (!data) return;
         if (data.error) {
           setSuccess('');
-          setError(data.error);
+          toast({
+            title: 'Error!',
+            description: data.error,
+            variant: 'error',
+            duration: 2000,
+          });
         }
         if (data.success) {
-          setError('');
+          form.reset();
+          toast({
+            title: 'Success!',
+            description: data.success,
+            variant: 'success',
+            duration: 2000,
+          });
           setSuccess(data.success);
         }
       });
     });
   };
 
+  if (success && success === 'Confirmation email sent!') {
+    return (
+      <CardWrapper
+        headerTitle="Check your email"
+        headerLabel="we sent you a confirmation email"
+      >
+        <div className="w-full flex flex-col items-center justify-center gap-y-[120px]">
+          <Image src={CheckEmail} alt="Check Email" />
+          <Button
+            onClick={() => {
+              setSuccess('');
+            }}
+            variant="outline"
+            className="w-[196px] h-10"
+          >
+            Back
+          </Button>
+        </div>
+      </CardWrapper>
+    );
+  }
+
   return (
     <CardWrapper
-      headerLabel="Create an account"
-      backButtonLabel="Already have an account?"
-      backButtonHref="/auth/login"
-      showSocial={!!registerUsername}
+      headerTitle={
+        registerUsername ? 'Create your account' : 'Create your username'
+      }
+      headerLabel={
+        registerUsername
+          ? 'linked to your username'
+          : 'people will find you by that name'
+      }
+      backButtonHref={() => {
+        if (registerUsername) {
+          dispatch(clearUsername());
+          form.reset();
+          form.clearErrors();
+        }
+      }}
+      showBackButton={!!registerUsername}
+      username={registerUsername ? `${registerUsername}` : undefined}
     >
       {!registerUsername && <UsernameInput />}
       {registerUsername && (
-        <>
-          <div className="w-full flex items-center justify-between">
-            <span>lingues.me/{registerUsername}</span>
-            <Button onClick={() => dispatch(clearUsername())} variant="outline">
-              Change
-            </Button>
-          </div>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <div className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Name</FormLabel>
-                      <FormControl>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <div className="space-y-4">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem className="gap-y-[6px]">
+                    <FormLabel>Name</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        disabled={isPending}
+                        placeholder="Write your full name"
+                        className="p-3 h-11 text-sm font-normal placeholder:text-[#999] border-[#E5E5E5] rounded-lg"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem className="gap-y-[6px]">
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        disabled={isPending}
+                        placeholder="Write your email"
+                        className="p-3 h-11 text-sm font-normal placeholder:text-[#999] border-[#E5E5E5] rounded-lg"
+                        type="email"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem className="gap-y-[6px]">
+                    <FormLabel>Password</FormLabel>
+                    <FormControl>
+                      <div className="w-full h-full relative">
                         <Input
-                          {...field}
                           disabled={isPending}
-                          placeholder="Ertuğrul Emre Cihan"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input
                           {...field}
-                          disabled={isPending}
-                          placeholder="example@devpage.com"
-                          type="email"
+                          placeholder="Write your password"
+                          className="p-3 h-11 text-sm font-normal placeholder:text-[#999] border-[#E5E5E5] rounded-lg"
+                          type={passwordIsHide ? 'password' : 'text'}
                         />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Password</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          disabled={isPending}
-                          placeholder="********"
-                          type="password"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <FormError message={error} />
-              <FormSuccess message={success} />
-              <Button type="submit" disabled={isPending} className="w-full">
-                Create an account
+                        <div className=" h-full flex items-center absolute top-0 right-3">
+                          {passwordIsHide ? (
+                            <IconEye
+                              size={20}
+                              onClick={() => setPasswordIsHide(!passwordIsHide)}
+                              className="text-[#999] cursor-pointer"
+                            />
+                          ) : (
+                            <IconEyeOff
+                              size={20}
+                              onClick={() => setPasswordIsHide(!passwordIsHide)}
+                              className="text-[#999] cursor-pointer"
+                            />
+                          )}
+                        </div>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <div className="flex items-center flex-col gap-y-4">
+              <Button
+                type="submit"
+                disabled={isPending || !form.formState.isValid}
+                className="w-full bg-[#272727] hover:bg-[#2e2e2e] border border-[#535353] ring-[1px] ring-[#272727] select-none"
+              >
+                Register
               </Button>
-            </form>
-          </Form>
-        </>
+              <span className="text-[#999] text-sm font-normal">OR</span>
+              <Social callbackUrl={callbackUrl || undefined} />
+            </div>
+          </form>
+        </Form>
       )}
     </CardWrapper>
   );

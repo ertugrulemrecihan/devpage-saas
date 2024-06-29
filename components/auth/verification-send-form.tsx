@@ -4,8 +4,9 @@ import * as z from 'zod';
 import { useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { sendEmailVerificationMessage } from '@/actions/verification';
 
-import { ResetSchema } from '@/schemas';
+import { VerificationSendSchema } from '@/schemas';
 import { Input } from '@/components/ui/input';
 import {
   Form,
@@ -15,26 +16,24 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-
 import CardWrapper from '@/components/auth/card-wrapper';
 import { Button } from '@/components/ui/button';
-import { reset } from '@/actions/reset';
 import { toast } from '@/components/ui/use-toast';
 
-const ResetForm = () => {
+const VerificationSendForm = () => {
   const [isPending, startTransition] = useTransition();
 
-  const form = useForm<z.infer<typeof ResetSchema>>({
-    resolver: zodResolver(ResetSchema),
+  const form = useForm<z.infer<typeof VerificationSendSchema>>({
+    resolver: zodResolver(VerificationSendSchema),
     defaultValues: {
       email: '',
     },
     mode: 'onChange',
   });
 
-  const onSubmit = (values: z.infer<typeof ResetSchema>) => {
+  const onSubmit = (values: z.infer<typeof VerificationSendSchema>) => {
     startTransition(() => {
-      reset(values).then((data) => {
+      sendEmailVerificationMessage(values).then((data) => {
         if (!data) return;
         if (data.error) {
           toast({
@@ -108,4 +107,4 @@ const ResetForm = () => {
   );
 };
 
-export default ResetForm;
+export default VerificationSendForm;

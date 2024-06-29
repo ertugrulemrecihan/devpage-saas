@@ -1,25 +1,44 @@
 import * as z from 'zod';
 
 export const LoginSchema = z.object({
-  email: z.string().email({
-    message: 'Email is required',
-  }),
-  password: z.string().min(1, {
-    message: 'Password is required',
-  }),
-  code: z.optional(z.string()),
+  email: z
+    .string({
+      message: 'Email is required',
+    })
+    .email({
+      message: 'Please enter a valid email address',
+    }),
+  password: z
+    .string({
+      message: 'Password is required',
+    })
+    .min(1, {
+      message: 'Password is required',
+    }),
 });
 
 export const RegisterSchema = z.object({
-  email: z.string().email({
-    message: 'Email is required',
-  }),
-  password: z.string().min(6, {
-    message: 'Minimum 6 characters required',
-  }),
-  name: z.string().min(1, {
-    message: 'Name is required',
-  }),
+  email: z
+    .string({
+      message: 'Email is required',
+    })
+    .email({
+      message: 'Please enter a valid email address',
+    }),
+  password: z
+    .string({
+      message: 'Password is required',
+    })
+    .min(6, {
+      message: 'Minimum 6 characters required',
+    }),
+  name: z
+    .string({
+      message: 'Name is required',
+    })
+    .min(1, {
+      message: 'Name is required',
+    }),
   username: z.optional(
     z
       .string({
@@ -48,16 +67,43 @@ export const UsernameSchema = z.object({
 });
 
 export const ResetSchema = z.object({
-  email: z.string().email({
-    message: 'Email is required',
-  }),
+  email: z
+    .string({
+      message: 'Email is required',
+    })
+    .email({
+      message: 'Please enter a valid email address',
+    }),
 });
 
-export const NewPasswordSchema = z.object({
-  password: z.string().min(6, {
-    message: 'Minimum 6 characters required',
-  }),
+export const VerificationSendSchema = z.object({
+  email: z
+    .string({
+      message: 'Email is required',
+    })
+    .email({
+      message: 'Please enter a valid email address',
+    }),
 });
+
+export const NewPasswordSchema = z
+  .object({
+    password: z.string().min(6, {
+      message: 'Minimum 6 characters required',
+    }),
+    confirmPassword: z.string().min(6, {
+      message: 'Minimum 6 characters required',
+    }),
+  })
+  .superRefine(({ confirmPassword, password }, ctx) => {
+    if (confirmPassword !== password) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'The passwords did not match',
+        path: ['confirmPassword'],
+      });
+    }
+  });
 
 export const UserPageDetailsSchema = z.object({
   name: z.optional(

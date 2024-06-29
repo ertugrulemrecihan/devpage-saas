@@ -63,6 +63,13 @@ body,
   @apply animate-edit-mode-bottom;
 }
 
+.auth-container {
+  background-image: url('/assets/images/AuthBottom.png');
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: bottom;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
