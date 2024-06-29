@@ -17,6 +17,7 @@ import OwnerActions from './_components/owner-actions';
 import SocialMediaLinks from './_components/social-media-links';
 import ProfileBackgroundDropdown from './_components/profile-background-dropdown';
 import Projects from './_components/projects';
+import { LogoutButton } from '@/components/auth/logout-button';
 
 const PublicUserPage = () => {
   const isPageEditing = useAppSelector((state) => state.profile.isEditMode);
@@ -93,6 +94,10 @@ const PublicUserPage = () => {
               </div>
             </div>
           </div>
+        </div>
+
+        <div className="absolute bottom-0 right-0 flex items-end justify-end px-12 py-12">
+          <LogoutButton />
         </div>
       </div>
     </main>

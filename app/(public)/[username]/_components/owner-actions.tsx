@@ -38,28 +38,13 @@ const OwnerActions = () => {
           transition={{ duration: 0.3 }}
           className="flex items-center gap-2"
         >
-          <Button
-            variant="outline"
-            onClick={() => {
-              if (isOwner && !isPageEditing) {
+          {!isPageEditing && (
+            <Button
+              variant="outline"
+              onClick={() => {
                 dispatch(setEditingMode(true));
-              } else {
-                // TODO: Add device preview
-              }
-            }}
-          >
-            {isPageEditing ? (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
-                className="flex items-center justify-center gap-2"
-              >
-                <Image src={Phone} alt="Phone" />
-                <span>Device Preview</span>
-              </motion.div>
-            ) : (
+              }}
+            >
               <motion.span
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -68,24 +53,17 @@ const OwnerActions = () => {
               >
                 Edit Profile
               </motion.span>
-            )}
-          </Button>
-          <Button
-            variant="outline"
-            className={cn({
-              'w-9 h-9': !isPageEditing,
-              'text-[#B91C1C]': isPageEditing,
-            })}
-            size={isPageEditing ? 'default' : 'icon'}
-            onClick={() => {
-              if (isOwner && !isPageEditing) {
-                // TODO: Add user settings
-              } else {
+            </Button>
+          )}
+          {isPageEditing && (
+            <Button
+              variant="outline"
+              className="text-white bg-[#EF4444] ring-[1px] ring-[#EF4444] hover:text-white hover:bg-[#ea5353] border border-[#F87171]"
+              size={isPageEditing ? 'default' : 'icon'}
+              onClick={() => {
                 dispatch(setEditingMode(false));
-              }
-            }}
-          >
-            {isPageEditing ? (
+              }}
+            >
               <motion.span
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -94,17 +72,8 @@ const OwnerActions = () => {
               >
                 Exit
               </motion.span>
-            ) : (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                <Settings stroke="#333" />
-              </motion.div>
-            )}
-          </Button>
+            </Button>
+          )}
         </motion.div>
       ) : (
         <div></div>
