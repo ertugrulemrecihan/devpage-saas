@@ -22,6 +22,9 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { deleteProject } from '@/actions/project';
 import { toast } from '../ui/use-toast';
+import { DraggableAttributes } from '@dnd-kit/core';
+import { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities';
+import { useSortable } from '@dnd-kit/sortable';
 
 interface ProjectCardProps {
   project?: Project;
@@ -40,6 +43,7 @@ interface ProjectCardProps {
     React.SetStateAction<{ id: string; isEditing: boolean }>
   >;
   setProjects?: React.Dispatch<React.SetStateAction<Project[] | null>>;
+  setProjectCardHovered?: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 interface IsInputEditOpenProps {
@@ -66,6 +70,7 @@ const ProjectCard = ({
   onSubmit,
   setProjectCardIsEditing,
   setProjects,
+  setProjectCardHovered,
 }: ProjectCardProps) => {
   const projectCardRef = useRef<HTMLDivElement>(null);
 
@@ -319,9 +324,11 @@ const ProjectCard = ({
         <div
           className={cn(
             'max-w-[30.563rem] group w-full flex items-center p-5 rounded-lg bg-white border border-[#E5E5E5] shadow-project-card relative overflow-hidden transition-all duration-300',
-            variant === 'horizontal' && 'gap-x-5 items-start h-full min-h-[9.125rem]',
+            variant === 'horizontal' &&
+              'gap-x-5 items-start h-full min-h-[9.125rem]',
             variant === 'big_image' && 'gap-x-5 h-full min-h-[10.5rem]',
-            variant === 'vertical' && 'flex-col gap-y-5 h-full min-h-[12.444rem]',
+            variant === 'vertical' &&
+              'flex-col h-full gap-y-5 min-h-[12.444rem]',
             isPageEditing && isEditing && 'cursor-pointer',
             project?.url && !isPageEditing && 'cursor-pointer'
           )}
@@ -332,30 +339,6 @@ const ProjectCard = ({
           {variant !== 'vertical' && (
             <ProjectStatus projectsStatus={projectsStatus} />
           )}
-          <AnimatePresence>
-            {isHovered && isPageEditing && !isAddProjectCard && (
-              <motion.div
-                initial={{ opacity: 0, top: -10 }}
-                animate={{ opacity: 1, top: 0 }}
-                exit={{ opacity: 0, top: -10 }}
-                transition={{ duration: 0.3 }}
-                className="absolute top-0 left-0 z-10 w-full h-full flex justify-center"
-              >
-                <div className="max-h-[20px] bg-[#CCC] rounded-b-lg flex flex-col gap-y-[2px] items-center justify-center gap-x-2 px-6">
-                  <div className="flex items-center gap-x-[2px]">
-                    <div className="w-[3px] h-[3px] rounded-full bg-white"></div>
-                    <div className="w-[3px] h-[3px] rounded-full bg-white"></div>
-                    <div className="w-[3px] h-[3px] rounded-full bg-white"></div>
-                  </div>
-                  <div className="flex items-center gap-x-[2px]">
-                    <div className="w-[3px] h-[3px] rounded-full bg-white"></div>
-                    <div className="w-[3px] h-[3px] rounded-full bg-white"></div>
-                    <div className="w-[3px] h-[3px] rounded-full bg-white"></div>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
           <AnimatePresence>
             {isHovered && isPageEditing && !isAddProjectCard && (
               <motion.div

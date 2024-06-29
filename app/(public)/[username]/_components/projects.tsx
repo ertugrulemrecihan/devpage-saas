@@ -6,7 +6,7 @@ import { notFound, useParams } from 'next/navigation';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import { fetchProjectStatus } from '@/actions/project-status';
 import { useAppDispatch, useAppSelector } from '@/lib/rtk-hooks';
-import { useEffect, useRef, useState, useTransition } from 'react';
+import { useCallback, useEffect, useRef, useState, useTransition } from 'react';
 import { CreateProjectSchema, ProjectEditSchema } from '@/schemas';
 import { updateUserPageProjectCardsStyle } from '@/actions/profile';
 import {
@@ -19,6 +19,7 @@ import {
   fetchProjects,
   updateProject,
   createProject as createProjectServer,
+  updateProjectsIndex,
 } from '@/actions/project';
 import {
   setEditingMode,
@@ -31,8 +32,27 @@ import { toast } from '@/components/ui/use-toast';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ProjectCard } from '@/components/project-card';
 import ProjectCardSkeleton from '@/components/project-card/project-card-skeleton';
+import {
+  DndContext,
+  DragEndEvent,
+  DragOverlay,
+  DragStartEvent,
+  MouseSensor,
+  TouchSensor,
+  closestCenter,
+  defaultDropAnimation,
+  useDraggable,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  arrayMove,
+  rectSortingStrategy,
+} from '@dnd-kit/sortable';
 
 import RefreshIcon from '@/public/assets/icons/refresh';
+import SortableProjectItem from '@/components/project-card/sortable-project-item';
 
 const Projects = () => {
   const isPageEditing = useAppSelector((state) => state.profile.isEditMode);
@@ -84,6 +104,17 @@ const Projects = () => {
     useState<boolean>(false);
   const [projectCardStyleChangeTimer, setProjectCardStyleChangeTimer] =
     useState<number | NodeJS.Timeout>(500);
+  const [projectIndexUpdateTimer, setProjectIndexUpdateTimer] = useState<
+    number | NodeJS.Timeout
+  >(500);
+
+  // ? Drag and Drop Configuration
+  const sensors = useSensors(useSensor(MouseSensor), useSensor(TouchSensor));
+  const { attributes, listeners, setNodeRef, transform } = useDraggable({
+    id: 'unique-id',
+    disabled: !isPageEditing,
+  });
+  const [activeId, setActiveId] = useState<string | number | null>(null);
 
   const [isPending, startFetchProjectsTransition] = useTransition();
   const [isProjectUpdatePending, startUpdateProjectTransition] =
@@ -354,6 +385,72 @@ const Projects = () => {
     onSave: updateProjectCardStyle,
   });
 
+  // Drag and Drop
+  const getProjectPos = (id: string) => {
+    return projects?.findIndex((project) => project.id === id);
+  };
+
+  const handleDragStart = useCallback((event: DragStartEvent) => {
+    setActiveId(event.active.id);
+  }, []);
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (active.id === over?.id) return;
+
+    let newProjects = projects;
+
+    setProjects((prevProjects) => {
+      if (!prevProjects) return;
+
+      const oldIndex = getProjectPos(active.id as string);
+      const newIndex = getProjectPos(over?.id as string);
+
+      if (oldIndex === undefined || newIndex === undefined) return;
+
+      newProjects = arrayMove(prevProjects, oldIndex, newIndex);
+
+      return newProjects;
+    });
+
+    const ProjectIds = newProjects?.map((project) => project.id);
+
+    const ProjectsIndexWithId = ProjectIds?.map((id) => {
+      return { id: id, index: ProjectIds.indexOf(id) };
+    });
+
+    clearTimeout(projectIndexUpdateTimer);
+
+    const timer = setTimeout(async () => {
+      await updateProjectsIndex(ProjectsIndexWithId).then((data) => {
+        if (data.error) {
+          toast({
+            title: 'Error!',
+            description: data.error,
+            variant: 'error',
+            duration: 2000,
+          });
+        }
+
+        if (data.success) {
+          toast({
+            title: 'Success!',
+            description: data.success,
+            variant: 'success',
+            duration: 2000,
+          });
+        }
+      });
+    }, 2000);
+
+    setProjectIndexUpdateTimer(timer);
+  };
+
+  const handleDragCancel = useCallback(() => {
+    setActiveId(null);
+  }, []);
+
   if (isPending) {
     return (
       <AnimatePresence>
@@ -506,146 +603,219 @@ const Projects = () => {
         transition={{ duration: 0.3 }}
         className="w-full h-full grid grid-cols-1 sm:grid-cols-2 place-items-center sm:place-items-start md:justify-start justify-center gap-5 transition-all duration-300 pb-6"
       >
-        <AnimatePresence>
-          {isAddingProject && isPageEditing && isOwner && (
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
-              ref={addProjectCardRef}
-              className="w-full"
-            >
-              <ProjectCard
-                variant={cardVariant}
-                isPageEditing={isPageEditing}
-                categories={categories}
-                projectsStatus={projectStatus}
-                onChange={(key, value) => {
-                  setCreateProject({
-                    ...createProject,
-                    [key]: value,
-                  });
-                }}
-                onClose={() => {
-                  setCreateProject(null);
-                  setCreateProjectIsValid(false);
-                }}
-                isValid={createProjectIsValid}
-                onSubmit={onSubmitCreateProject}
-                isAddProjectCard={true}
-                changes={createProject as { [key: string]: string }}
-              >
-                <ProjectCard.Image
-                  projectsStatus={projectStatus}
-                  isPageEditing={isPageEditing}
-                  projectCardIsEditing={{ id: '', isEditing: true }}
-                  isAddProjectCard={true}
-                />
-
-                <ProjectCard.Details
-                  categories={categories}
-                  projectCardIsEditing={{ id: '', isEditing: true }}
-                  onChange={(key, value) => {
-                    setCreateProject({
-                      ...createProject,
-                      [key]: value,
-                    });
-                  }}
-                  isValid={createProjectIsValid}
-                />
-              </ProjectCard>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {projects &&
-          projects?.length > 0 &&
-          projects?.map((project) => (
-            <ProjectCard
-              key={project.id}
-              variant={cardVariant}
-              project={project}
-              isPageEditing={isPageEditing}
-              categories={categories}
-              projectsStatus={projectStatus}
-              onChange={(key, value) => {
-                setProjectEditChanges({
-                  ...projectEditChanges!,
-                  id: project.id,
-                  [key]: value,
-                });
-                setProjectEditIsValid(false);
-              }}
-              onClose={() => {
-                setProjectEditChanges(null);
-              }}
-              isValid={projectEditIsValid}
-              onSubmit={onSubmitProjectChanges}
-              setProjectCardIsEditing={setProjectCardIsEditing}
-              changes={changes}
-              setProjects={
-                setProjects as React.Dispatch<
-                  React.SetStateAction<Project[] | null>
-                >
-              }
-            >
-              <ProjectCard.Image
-                projectsStatus={projectStatus}
-                isPageEditing={isPageEditing}
-                projectCardIsEditing={projectCardIsEditing}
-                setProjects={
-                  setProjects as React.Dispatch<
-                    React.SetStateAction<Project[] | null>
-                  >
-                }
-              />
-              <ProjectCard.Details
-                categories={categories}
-                projectCardIsEditing={projectCardIsEditing}
-                onChange={(key, value) => {
-                  setProjectEditChanges({
-                    ...projectEditChanges!,
-                    id: project.id,
-                    [key]: value,
-                  });
-                  setProjectEditIsValid(false);
-                }}
-                setChanges={
-                  setChanges as React.Dispatch<
-                    React.SetStateAction<{ [key: string]: string }>
-                  >
-                }
-                isValid={projectEditIsValid}
-              />
-            </ProjectCard>
-          ))}
-
-        <AnimatePresence>
-          {isCreateProjectPending &&
-            !isAddingProject &&
-            isPageEditing &&
-            isOwner && (
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+          onDragCancel={handleDragCancel}
+        >
+          <AnimatePresence>
+            {isAddingProject && isPageEditing && isOwner && (
               <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.3 }}
                 ref={addProjectCardRef}
-                className={cn(
-                  'w-full bg-white border border-[#E5E5E5] shadow-project-card rounded-lg flex items-center justify-center',
-                  cardVariant === 'horizontal' &&
-                    'md:h-[9.125rem] min-h-[9.125rem]',
-                  cardVariant === 'big_image' &&
-                    'md:h-[10.5rem] min-h-[10.5rem]',
-                  cardVariant === 'vertical' &&
-                    'md:h-[12.444rem] min-h-[12.444rem]'
-                )}
+                className="w-full"
               >
-                <div className="w-8 h-8 border-2 border-t-[#666666] border-solid rounded-full animate-spin"></div>
+                <ProjectCard
+                  variant={cardVariant}
+                  isPageEditing={isPageEditing}
+                  categories={categories}
+                  projectsStatus={projectStatus}
+                  onChange={(key, value) => {
+                    setCreateProject({
+                      ...createProject,
+                      [key]: value,
+                    });
+                  }}
+                  onClose={() => {
+                    setCreateProject(null);
+                    setCreateProjectIsValid(false);
+                  }}
+                  isValid={createProjectIsValid}
+                  onSubmit={onSubmitCreateProject}
+                  isAddProjectCard={true}
+                  changes={createProject as { [key: string]: string }}
+                >
+                  <ProjectCard.Image
+                    projectsStatus={projectStatus}
+                    isPageEditing={isPageEditing}
+                    projectCardIsEditing={{ id: '', isEditing: true }}
+                    isAddProjectCard={true}
+                  />
+
+                  <ProjectCard.Details
+                    categories={categories}
+                    projectCardIsEditing={{ id: '', isEditing: true }}
+                    onChange={(key, value) => {
+                      setCreateProject({
+                        ...createProject,
+                        [key]: value,
+                      });
+                    }}
+                    isValid={createProjectIsValid}
+                  />
+                </ProjectCard>
               </motion.div>
             )}
-        </AnimatePresence>
+          </AnimatePresence>
+
+          <SortableContext
+            items={projects ? projects.map((project) => project.id) : []}
+            strategy={rectSortingStrategy}
+          >
+            {projects?.map((project) => (
+              <SortableProjectItem
+                key={project.id}
+                project={project}
+                cardVariant={cardVariant}
+                isPageEditing={isPageEditing}
+                categories={categories}
+                projectStatus={projectStatus}
+                projectEditChanges={projectEditChanges}
+                projectEditIsValid={projectEditIsValid}
+                changes={changes}
+                projectCardIsEditing={projectCardIsEditing}
+                setProjectEditIsValid={setProjectEditIsValid}
+                onSubmitProjectChanges={onSubmitProjectChanges}
+                setProjectCardIsEditing={setProjectCardIsEditing}
+                setProjectEditChanges={
+                  setProjectEditChanges as React.Dispatch<
+                    React.SetStateAction<{
+                      [key: string]:
+                        | string
+                        | number
+                        | boolean
+                        | null
+                        | undefined;
+                    } | null>
+                  >
+                }
+                setProjects={
+                  setProjects as React.Dispatch<
+                    React.SetStateAction<Project[] | null>
+                  >
+                }
+                setChanges={
+                  setChanges as React.Dispatch<
+                    React.SetStateAction<{ [key: string]: string }>
+                  >
+                }
+              />
+            ))}
+          </SortableContext>
+
+          <DragOverlay
+            dropAnimation={defaultDropAnimation}
+            adjustScale
+            style={{ transformOrigin: '0 0 ' }}
+            zIndex={100}
+            className="z-[100] w-full h-full pointer-events-none"
+          >
+            {activeId &&
+            projects &&
+            projects.some((project) => project.id === activeId)
+              ? projects
+                  .filter((project) => project.id === activeId)
+                  .map((project) => (
+                    <div
+                      key={project.id}
+                      className="w-full h-full"
+                      ref={setNodeRef}
+                      {...attributes}
+                      {...listeners}
+                    >
+                      <ProjectCard
+                        key={project.id}
+                        variant={cardVariant}
+                        project={project}
+                        isPageEditing={isPageEditing}
+                        categories={categories}
+                        projectsStatus={projectStatus}
+                        onChange={(key, value) => {
+                          setProjectEditChanges({
+                            ...projectEditChanges!,
+                            id: project.id,
+                            [key]: value,
+                          });
+                          setProjectEditIsValid(false);
+                        }}
+                        onClose={() => {
+                          setProjectEditChanges(null);
+                        }}
+                        isValid={projectEditIsValid}
+                        onSubmit={onSubmitProjectChanges}
+                        setProjectCardIsEditing={setProjectCardIsEditing}
+                        changes={changes}
+                        setProjects={
+                          setProjects as React.Dispatch<
+                            React.SetStateAction<Project[] | null>
+                          >
+                        }
+                      >
+                        <ProjectCard.Image
+                          projectsStatus={projectStatus}
+                          isPageEditing={isPageEditing}
+                          projectCardIsEditing={projectCardIsEditing}
+                          setProjects={
+                            setProjects as React.Dispatch<
+                              React.SetStateAction<Project[] | null>
+                            >
+                          }
+                        />
+                        <ProjectCard.Details
+                          categories={categories}
+                          projectCardIsEditing={projectCardIsEditing}
+                          onChange={(key, value) => {
+                            setProjectEditChanges({
+                              ...projectEditChanges!,
+                              id: project.id,
+                              [key]: value,
+                            });
+                            setProjectEditIsValid(false);
+                          }}
+                          setChanges={
+                            setChanges as React.Dispatch<
+                              React.SetStateAction<{ [key: string]: string }>
+                            >
+                          }
+                          isValid={projectEditIsValid}
+                        />
+                      </ProjectCard>
+                    </div>
+                  ))
+              : null}
+          </DragOverlay>
+
+          <AnimatePresence>
+            {isCreateProjectPending &&
+              !isAddingProject &&
+              isPageEditing &&
+              isOwner && (
+                <motion.div
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
+                  ref={addProjectCardRef}
+                  className={cn(
+                    'w-full bg-white border border-[#E5E5E5] shadow-project-card rounded-lg flex items-center justify-center',
+                    cardVariant === 'horizontal' &&
+                      'md:h-[9.125rem] min-h-[9.125rem]',
+                    cardVariant === 'big_image' &&
+                      'md:h-[10.5rem] min-h-[10.5rem]',
+                    cardVariant === 'vertical' &&
+                      'md:h-[12.444rem] min-h-[12.444rem]'
+                  )}
+                >
+                  <div className="w-8 h-8 border-2 border-t-[#666666] border-solid rounded-full animate-spin"></div>
+                </motion.div>
+              )}
+          </AnimatePresence>
+        </DndContext>
       </motion.div>
     </div>
   );

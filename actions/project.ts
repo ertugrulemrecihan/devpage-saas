@@ -33,7 +33,11 @@ export const fetchProjects = async (username: string) => {
       userId: dbUser.id,
     },
     select: {
-      projects: true,
+      projects: {
+        orderBy: {
+          index: 'asc',
+        },
+      },
     },
   });
 
@@ -242,4 +246,54 @@ export const deleteProject = async (project_id: string) => {
   });
 
   return { success: 'Deleted! ❌', project: deletedProject };
+};
+
+export const updateProjectsIndex = async (
+  projectsWithIndex:
+    | {
+        id: string;
+        index: number;
+      }[]
+    | undefined
+) => {
+  const user = await currentUser();
+
+  if (!user) {
+    return { error: 'Unauthorized!' };
+  }
+
+  const dbUser = await getUserById(user.id as string);
+
+  if (!dbUser) {
+    return { error: 'Unauthorized!' };
+  }
+
+  const userPage = await getUserPageByUserId(user.id as string);
+
+  if (!userPage) {
+    return { error: 'Failed to update projects!' };
+  }
+
+  if (!projectsWithIndex) {
+    return { error: 'Failed to update projects!' };
+  }
+
+  const updatedProjects = await Promise.all(
+    projectsWithIndex.map(async (project) => {
+      return await db.project.update({
+        where: {
+          id: project.id,
+        },
+        data: {
+          index: project.index,
+        },
+      });
+    })
+  );
+
+  if (!updatedProjects) {
+    return { error: 'Failed to update projects!' };
+  }
+
+  return { success: 'Saved! ✅' };
 };
