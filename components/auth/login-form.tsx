@@ -1,7 +1,7 @@
 'use client';
 
 import * as z from 'zod';
-import { useState, useTransition } from 'react';
+import { useTransition } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -77,6 +77,9 @@ const LoginForm = () => {
               variant: 'success',
               duration: 2000,
             });
+            setTimeout(() => {
+              window.location.href = data.callbackUrl as string;
+            }, 1000);
           }
         })
         .catch(() => {

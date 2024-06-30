@@ -9,16 +9,14 @@ datasource db {
 }
 
 model User {
-  id                    String                 @id @default(cuid())
-  name                  String?
-  username              String?                @unique
-  email                 String?                @unique
-  emailVerified         DateTime?
-  image                 String?
-  password              String?
-  accounts              Account[]
-  isTwoFactorEnabled    Boolean                @default(false)
-  twoFactorConfirmation TwoFactorConfirmation?
+  id            String    @id @default(cuid())
+  name          String?
+  username      String?   @unique
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  accounts      Account[]
 
   userPage UserPage?
 }
@@ -116,23 +114,6 @@ model PasswordResetToken {
   expiresAt DateTime
 
   @@unique([email, token])
-}
-
-model TwoFactorToken {
-  id        String   @id @default(cuid())
-  email     String
-  token     String   @unique
-  expiresAt DateTime
-
-  @@unique([email, token])
-}
-
-model TwoFactorConfirmation {
-  id     String @id @default(cuid())
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId])
 }
 
 enum PROJECT_CARD_STYLE {

@@ -4,7 +4,6 @@ import { PrismaAdapter } from '@auth/prisma-adapter';
 import { db } from '@/lib/db';
 import authConfig from '@/auth.config';
 import { getUserById } from '@/data/user';
-import { getTwoFactorConfirmationByUserId } from './data/two-factor-confirmation';
 import { getAccountByUserId } from './data/account';
 import {
   clearUsernameSession,
@@ -53,7 +52,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       const existingUser = await getUserById(user.id as string);
 
       // Allow OAuth without email verification
-      // TODO: Create User Page for OAuth users
       if (account?.provider !== 'credentials') {
         const sessionUsername = await fetchUsernameInSession();
 
@@ -71,21 +69,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (existingUser) {
         // Prevent sign in without email verification
         if (!existingUser?.emailVerified) return false;
-
-        if (existingUser.isTwoFactorEnabled) {
-          const twoFactorConfirmation = await getTwoFactorConfirmationByUserId(
-            existingUser.id
-          );
-
-          if (!twoFactorConfirmation) return false;
-
-          // Delete two factor confirmation for next login
-          await db.twoFactorConfirmation.delete({
-            where: {
-              id: twoFactorConfirmation.id,
-            },
-          });
-        }
       }
 
       return true;
@@ -96,8 +79,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
 
       if (session.user) {
-        session.user.isTwoFactorEnabled = token.isTwoFactorEnabled as boolean;
-
         session.user.name = token.name;
         session.user.username = token.username as string;
         session.user.email = token.email as string;
@@ -119,7 +100,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       token.name = existingUser.name;
       token.username = existingUser.username;
       token.email = existingUser.email;
-      token.isTwoFactorEnabled = existingUser.isTwoFactorEnabled;
 
       return token;
     },

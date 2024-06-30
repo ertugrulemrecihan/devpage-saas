@@ -42,10 +42,14 @@ export const login = async (
     await signIn('credentials', {
       email,
       password,
-      redirectTo: callbackUrl || `/${existingUser.username}`,
+      redirect: false,
     });
 
-    return { success: '' };
+    if (callbackUrl) {
+      return { success: 'Logged in!', callbackUrl };
+    }
+
+    return { success: 'Logged in!', callbackUrl: `/${existingUser.username}` };
   } catch (error) {
     if (error instanceof AuthError) {
       switch (error.type) {

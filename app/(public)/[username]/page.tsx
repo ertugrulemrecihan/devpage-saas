@@ -96,9 +96,7 @@ const PublicUserPage = () => {
           </div>
         </div>
 
-        <div className="absolute bottom-0 right-0 flex items-end justify-end px-12 py-12">
-          <LogoutButton />
-        </div>
+        <LogoutButton />
       </div>
     </main>
   );

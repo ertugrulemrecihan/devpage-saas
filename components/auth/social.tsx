@@ -24,6 +24,7 @@ export const Social = ({ callbackUrl }: SocialProps) => {
           className="w-full gap-x-2"
           variant="outline"
           onClick={() => onClick('github')}
+          type="button"
         >
           <IconBrandGithubFilled className="h-5 w-5" />
           <span className="text-[#333333] text-base font-medium">GitHub</span>
@@ -34,6 +35,7 @@ export const Social = ({ callbackUrl }: SocialProps) => {
           className="w-full gap-x-2"
           variant="outline"
           onClick={() => onClick('google')}
+          type="button"
         >
           <IconBrandGoogleFilled className="h-5 w-5 text-[#1D9BF0]" />
           <span className="text-[#1D9BF0] text-base font-medium">Google</span>
