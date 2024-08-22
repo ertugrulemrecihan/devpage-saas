@@ -77,9 +77,11 @@ const LoginForm = () => {
               variant: 'success',
               duration: 2000,
             });
-            setTimeout(() => {
-              window.location.href = data.callbackUrl as string;
-            }, 1000);
+            if (data?.success !== 'Confirmation email sent!') {
+              setTimeout(() => {
+                window.location.href = data.callbackUrl as string;
+              }, 1000);
+            }
           }
         })
         .catch(() => {
